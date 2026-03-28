@@ -1,0 +1,32 @@
+<!DOCTYPE html>
+<html>
+
+<script>
+        // Function to change the text of the element
+        function showFrame() {
+            // Get the element by its ID
+            const element = document.getElementById("frame1");
+
+            // Check if the element exists before modifying it
+            if (element) {
+                element.style = "";
+            } else {
+                console.error("Element with ID 'frame1' not found.");
+            }
+        }
+    </script>
+
+
+<body>
+<h1>cool site</h1>
+<button onclick="alert('Hello World')">please click</button>
+<button onclick="showFrame()">click to show main site!</button>
+
+<iframe id="frame1" src="./index.html" style="display:none"></iframe>
+
+
+</body>
+
+
+
+</html>
