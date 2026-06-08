@@ -65,6 +65,78 @@
     <h1>atomicdude presents!!!</h1>
     <h2>Atomicunwasteland</h2>
     <h3>Welcome! to my corner of the information superhighway</h3>
+
+    <style>
+      .flip-digit {
+        display: inline-block;
+        width: 26px;
+        height: 40px;
+        background: linear-gradient(to bottom, #2d2d2d 0%, #1c1c1c 49%, #111 50%, #222 100%);
+        color: #fff;
+        font-family: 'Courier New', monospace;
+        font-size: 26px;
+        font-weight: bold;
+        text-align: center;
+        line-height: 40px;
+        border-radius: 1px;
+        border: 1px solid #000;
+        box-shadow: inset 0 1px 4px #000;
+        position: relative;
+        margin: 0 1px;
+      }
+      .flip-digit::after {
+        content: '';
+        position: absolute;
+        top: 50%;
+        left: 0;
+        right: 0;
+        height: 1px;
+        background: #000;
+        opacity: 0.8;
+      }
+    </style>
+    <div id="view-counter" style="position:fixed;top:60px;right:20px;cursor:grab;z-index:9999;user-select:none;background:#c0c0c0;border-top:3px solid #808080;border-left:3px solid #808080;border-right:3px solid #fff;border-bottom:3px solid #fff;padding:8px 10px;font-family:Arial,sans-serif;">
+      <div style="font-size:11px;font-weight:bold;text-align:center;letter-spacing:3px;color:#000;margin-bottom:6px;text-transform:uppercase;">Views</div>
+      <div style="text-align:center;">
+        <span class="flip-digit" id="nc-d0">0</span><span class="flip-digit" id="nc-d1">0</span><span class="flip-digit" id="nc-d2">0</span><span class="flip-digit" id="nc-d3">0</span><span class="flip-digit" id="nc-d4">0</span>
+      </div>
+    </div>
+    <script>
+      function renderDigits(n) {
+        var str = String(n).padStart(5, '0');
+        for (var i = 0; i < 5; i++) {
+          document.getElementById('nc-d' + i).textContent = str[i];
+        }
+      }
+
+      function tick() {
+        fetch('/views.json?t=' + Date.now())
+          .then(function(r) { return r.json(); })
+          .then(function(d) { renderDigits(d.views); })
+          .catch(function() {});
+      }
+      tick();
+      setInterval(tick, 10000);
+
+      (function() {
+        var el = document.getElementById('view-counter');
+        var dragging = false, ox = 0, oy = 0;
+        el.addEventListener('mousedown', function(e) {
+          dragging = true;
+          ox = e.clientX - el.getBoundingClientRect().left;
+          oy = e.clientY - el.getBoundingClientRect().top;
+          el.style.cursor = 'grabbing';
+          el.style.right = 'auto';
+          e.preventDefault();
+        });
+        document.addEventListener('mousemove', function(e) {
+          if (!dragging) return;
+          el.style.left = (e.clientX - ox) + 'px';
+          el.style.top = (e.clientY - oy) + 'px';
+        });
+        document.addEventListener('mouseup', function() { dragging = false; el.style.cursor = 'grab'; });
+      })();
+    </script>
     
     
     <marquee><h2>my creation!</h2></marquee>

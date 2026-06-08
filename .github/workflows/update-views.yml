@@ -1,0 +1,15 @@
+name: Update Views Counter
+on:
+  schedule:
+    - cron: '* * * * *'
+  workflow_dispatch:
+
+jobs:
+  update:
+    runs-on: ubuntu-latest
+    steps:
+      - name: Fetch views and push to Neocities
+        run: |
+          VIEWS=$(curl -sf "https://neocities.org/api/info?sitename=atomicunwasteland" | python3 -c "import sys,json; d=json.load(sys.stdin); print(d['info']['views'])")
+          echo "{\"views\":$VIEWS}" > views.json
+          curl -sf -F "views.json=@views.json" "https://neocities.org/api/upload" -H "Authorization: Bearer ${{ secrets.NEOCITIES_API_KEY }}"
