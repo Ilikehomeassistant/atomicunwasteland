@@ -109,23 +109,14 @@
         }
       }
 
-      var COUNTER_API = 'https://abacus.jasoncameron.dev';
-      function refreshViews() {
-        fetch(COUNTER_API + '/get/atomicunwasteland/views')
+      function tick() {
+        fetch('/views.json?t=' + Date.now())
           .then(function(r) { return r.json(); })
-          .then(function(d) { renderDigits(d.value); })
+          .then(function(d) { renderDigits(d.views); })
           .catch(function() {});
       }
-      if (!sessionStorage.getItem('nc-counted')) {
-        sessionStorage.setItem('nc-counted', '1');
-        fetch(COUNTER_API + '/hit/atomicunwasteland/views')
-          .then(function(r) { return r.json(); })
-          .then(function(d) { renderDigits(d.value); })
-          .catch(refreshViews);
-      } else {
-        refreshViews();
-      }
-      setInterval(refreshViews, 10000);
+      tick();
+      setInterval(tick, 10000);
 
       (function() {
         var el = document.getElementById('view-counter');

@@ -1,0 +1,211 @@
+<!DOCTYPE html>
+<html>
+  <head>
+    <meta charset="UTF-8">
+    <title>Device library</title>
+    <style>
+      @import url('https://fonts.googleapis.com/css2?family=Share+Tech+Mono&display=swap');
+
+      * {
+        box-sizing: border-box;
+        margin: 0;
+        padding: 0;
+      }
+
+      body {
+        background-color: #fdf6ec;
+        color: #c45e00;
+        font-family: 'Share Tech Mono', 'Courier New', monospace;
+        text-align: center;
+        padding: 40px 20px;
+        min-height: 100vh;
+        background-image:
+          repeating-linear-gradient(
+            0deg,
+            rgba(200, 120, 0, 0.03) 0px,
+            rgba(200, 120, 0, 0.03) 1px,
+            transparent 1px,
+            transparent 4px
+          );
+      }
+
+      /* scanline overlay */
+      body::before {
+        content: '';
+        position: fixed;
+        inset: 0;
+        background: repeating-linear-gradient(
+          to bottom,
+          transparent 0px,
+          transparent 3px,
+          rgba(180, 90, 0, 0.04) 3px,
+          rgba(180, 90, 0, 0.04) 4px
+        );
+        pointer-events: none;
+        z-index: 999;
+      }
+
+      .container {
+        max-width: 720px;
+        margin: 0 auto;
+        border: 2px solid #e8873a;
+        padding: 32px;
+        background: rgba(255, 240, 220, 0.6);
+        box-shadow:
+          0 0 12px rgba(220, 120, 30, 0.2),
+          inset 0 0 40px rgba(220, 120, 30, 0.05);
+        position: relative;
+      }
+
+      .container::before {
+        content: '[  device_lib v0.1  ]';
+        position: absolute;
+        top: -14px;
+        left: 50%;
+        transform: translateX(-50%);
+        background: #fdf6ec;
+        padding: 0 10px;
+        font-size: 0.75rem;
+        color: #e8873a;
+        letter-spacing: 2px;
+      }
+
+      .userbar {
+        display: block;
+        margin: 0 auto 24px auto;
+        max-width: 100%;
+        opacity: 0.9;
+      }
+
+      h1 {
+        font-size: 1.8rem;
+        letter-spacing: 4px;
+        text-transform: uppercase;
+        color: #bf5500;
+        margin-bottom: 24px;
+        text-shadow: 0 0 8px rgba(200, 100, 0, 0.35);
+        animation: flicker 6s infinite;
+      }
+
+      h1::before { content: '> '; color: #e8a060; }
+
+      @keyframes flicker {
+        0%, 96%, 100% { opacity: 1; }
+        97% { opacity: 0.85; }
+        98% { opacity: 1; }
+        99% { opacity: 0.9; }
+      }
+
+      .device-img {
+        width: 420px;
+        max-width: 100%;
+        display: block;
+        margin: 0 auto 28px auto;
+        border: 2px solid #e8873a;
+        filter: sepia(20%) saturate(90%) brightness(1.05);
+        transition: filter 0.3s ease, box-shadow 0.3s ease;
+        box-shadow: 0 0 16px rgba(220, 120, 30, 0.15);
+      }
+
+      .device-img:hover {
+        filter: sepia(10%) saturate(110%) brightness(1.08);
+        box-shadow: 0 0 28px rgba(220, 120, 30, 0.3);
+      }
+
+      p {
+        font-size: 0.95rem;
+        line-height: 1.75;
+        color: #a04800;
+        max-width: 560px;
+        margin: 0 auto 28px auto;
+        text-align: left;
+        border-left: 3px solid #e8a060;
+        padding-left: 14px;
+      }
+
+      .specs {
+        list-style: none;
+        text-align: left;
+        display: inline-block;
+        margin: 0 auto;
+        border: 1px dashed #e8a060;
+        padding: 16px 28px;
+        background: rgba(240, 200, 150, 0.15);
+      }
+
+      .specs li {
+        font-size: 0.9rem;
+        padding: 6px 0;
+        border-bottom: 1px dotted rgba(230, 140, 60, 0.3);
+        color: #b05200;
+        transition: color 0.2s ease;
+      }
+
+      .specs li:last-child { border-bottom: none; }
+
+      .specs li:hover { color: #d06000; }
+
+      .specs li::before { content: '$ '; color: #e8a060; }
+
+      .specs a {
+        color: #d07020;
+        text-decoration: none;
+        border-bottom: 1px solid rgba(220, 130, 60, 0.4);
+        transition: color 0.2s ease, border-color 0.2s ease;
+      }
+
+      .specs a:hover {
+        color: #bf5500;
+        border-color: #bf5500;
+      }
+
+      .footer-line {
+        margin-top: 28px;
+        font-size: 0.7rem;
+        color: #d09060;
+        letter-spacing: 3px;
+        opacity: 0.6;
+      }
+    </style>
+  </head>
+
+  <body>
+    <div class="container">
+      <img class="userbar" src="/icons/userbar.png" alt="userbar">
+
+      <h1>M5stack cardputer ADV</h1>
+
+      <img class="device-img" src="https://shop.m5stack.com/cdn/shop/files/9_e979ae23-d47f-4037-9da6-5c3bc25e0362_1200x1200.webp?v=1767858414" alt="M5Stack Cardputer">
+
+      <p>This thing is gonna be so cool when i get it see the cardputer ADV has more to it than meets the eye because it isint just a fancy esp32
+      dev board this thing is basically a flipper zero but minus a few features and a whopping €170 less! mine should arrive soon!</p>
+
+      <ul class="specs">
+        <li>can it run doom: yes</li>
+        <li>do I have it: not yet</li>
+        <li>is it cool: heck yeah!</li>
+        <li>can it hack stuff: yes</li>
+        <li>where to get it: <a href="https://shop.m5stack.com/products/m5stack-cardputer-adv-version-esp32-s3?variant=46698741203201">m5stack.com</a></li>
+      </ul>
+
+      <p class="footer-line">// end of entry //</p>
+
+      <h1>HP 240 G8 laptop</h1>
+      <img class="device-img" src="https://www.ryans.com/storage/products/main/hp-240-g8-11th-gen-intel-core-i5-1135g7-8gb-ram-31704865598.webp" alt="hp 240 g8 laptop">
+
+      <p>Ahhh my humble laptop the tool that wrote this website the device that controls my 3d printer the computer that does everything.
+      Its got a good 24 gigs of ram (I upgraded it) a cromulent at best webcam,pretty good speakers display is nice. Its a simple but good laptop.
+      </p>
+      <ul class="specs">
+        <li>can it run doom: most certainly</li>
+        <li>do I have it: obviously</li>
+        <li>is it cool: yeah</li>
+        <li>can it hack stuff: probably</li>
+        <li>where to get it: I really dont know</li>
+      </ul>
+
+      <p class="footer-line">// end of entry //</p>
+
+    </div>
+  </body>
+</html>

@@ -1,0 +1,476 @@
+<!DOCTYPE html>
+<html>
+  <head>
+    <meta charset="UTF-8">
+    <title>atomicunwasteland // nightly</title>
+    <link rel="icon" type="image/jpeg" href="https://atomicunwasteland.neocities.org/icons/favicon.png">
+    <style>
+      .uc-wrapper {
+        background: repeating-linear-gradient(
+          -45deg,
+          #FFD700 0px, #FFD700 22px,
+          #111111 22px, #111111 44px
+        );
+        padding: 7px 0;
+        overflow: hidden;
+      }
+      .uc-content {
+        display: inline-flex;
+        align-items: center;
+        gap: 14px;
+        white-space: nowrap;
+      }
+      .uc-text {
+        display: inline-flex;
+        font-size: 1.3rem;
+        font-weight: bold;
+        letter-spacing: 2px;
+      }
+      .uc-text span {
+        display: inline-block;
+        color: #fff;
+        text-shadow:
+          1px 1px 0 #000,
+         -1px -1px 0 #000,
+          1px -1px 0 #000,
+         -1px  1px 0 #000;
+        animation: wave-letter 1.1s ease-in-out infinite;
+      }
+      @keyframes wave-letter {
+        0%, 100% { transform: translateY(0px); }
+        50%       { transform: translateY(-9px); }
+      }
+
+      /* CRT scanline overlay */
+      #crt-overlay {
+        position: fixed;
+        top: 0; left: 0; right: 0; bottom: 0;
+        pointer-events: none;
+        z-index: 99998;
+        background: repeating-linear-gradient(
+          to bottom,
+          transparent 0px,
+          transparent 3px,
+          rgba(0,0,0,0.08) 3px,
+          rgba(0,0,0,0.08) 4px
+        );
+      }
+
+      /* glitch on h1 */
+      .glitch {
+        position: relative;
+        display: inline-block;
+      }
+      .glitch::before, .glitch::after {
+        content: attr(data-text);
+        position: absolute;
+        top: 0; left: 0;
+        width: 100%;
+        overflow: hidden;
+      }
+      .glitch::before {
+        color: #f0f;
+        animation: glitch-top 3.5s infinite linear;
+        clip-path: polygon(0 0, 100% 0, 100% 33%, 0 33%);
+      }
+      .glitch::after {
+        color: #0ff;
+        animation: glitch-bot 3.5s infinite linear;
+        clip-path: polygon(0 67%, 100% 67%, 100% 100%, 0 100%);
+      }
+      @keyframes glitch-top {
+        0%,90%,100% { transform: translate(0); opacity: 0; }
+        91% { transform: translate(-3px, -1px); opacity: 1; }
+        93% { transform: translate(3px, 1px); opacity: 1; }
+        95% { transform: translate(-2px, 0); opacity: 1; }
+        97% { transform: translate(0); opacity: 0; }
+      }
+      @keyframes glitch-bot {
+        0%,90%,100% { transform: translate(0); opacity: 0; }
+        92% { transform: translate(3px, 1px); opacity: 1; }
+        94% { transform: translate(-3px, -1px); opacity: 1; }
+        96% { transform: translate(2px, 0); opacity: 1; }
+        98% { transform: translate(0); opacity: 0; }
+      }
+
+      /* win95 clock */
+      #retro-clock {
+        position: fixed;
+        bottom: 20px;
+        right: 20px;
+        z-index: 9999;
+        background: #c0c0c0;
+        border-top: 3px solid #fff;
+        border-left: 3px solid #fff;
+        border-right: 3px solid #808080;
+        border-bottom: 3px solid #808080;
+        padding: 4px 10px;
+        font-family: 'Courier New', monospace;
+        font-size: 14px;
+        font-weight: bold;
+        color: #000;
+        user-select: none;
+        letter-spacing: 2px;
+      }
+
+      /* haxxed overlay */
+      #haxxed-overlay {
+        display: none;
+        position: fixed;
+        top: 0; left: 0; right: 0; bottom: 0;
+        background: rgba(0,0,0,0.92);
+        z-index: 999999;
+        color: #00ff00;
+        font-family: 'Courier New', monospace;
+        font-size: 16px;
+        overflow: hidden;
+        flex-direction: column;
+        align-items: center;
+        justify-content: center;
+        text-align: center;
+      }
+      #haxxed-overlay.active { display: flex; }
+      #haxxed-overlay h1 {
+        font-size: 64px;
+        color: #00ff00;
+        text-shadow: 0 0 20px #00ff00, 0 0 40px #00ff00;
+        animation: flicker 0.15s infinite alternate;
+        margin: 0;
+      }
+      @keyframes flicker {
+        from { opacity: 1; }
+        to   { opacity: 0.85; }
+      }
+      #matrix-canvas {
+        position: fixed;
+        top: 0; left: 0;
+        pointer-events: none;
+        z-index: 999998;
+        display: none;
+      }
+      #matrix-canvas.active { display: block; }
+
+      /* flip-digit for view counter */
+      .flip-digit {
+        display: inline-block;
+        width: 26px;
+        height: 40px;
+        background: linear-gradient(to bottom, #2d2d2d 0%, #1c1c1c 49%, #111 50%, #222 100%);
+        color: #fff;
+        font-family: 'Courier New', monospace;
+        font-size: 26px;
+        font-weight: bold;
+        text-align: center;
+        line-height: 40px;
+        border-radius: 1px;
+        border: 1px solid #000;
+        box-shadow: inset 0 1px 4px #000;
+        position: relative;
+        margin: 0 1px;
+      }
+      .flip-digit::after {
+        content: '';
+        position: absolute;
+        top: 50%;
+        left: 0;
+        right: 0;
+        height: 1px;
+        background: #000;
+        opacity: 0.8;
+      }
+
+      /* session visitor badge */
+      #session-badge {
+        position: fixed;
+        bottom: 20px;
+        left: 20px;
+        z-index: 9999;
+        background: #c0c0c0;
+        border-top: 3px solid #fff;
+        border-left: 3px solid #fff;
+        border-right: 3px solid #808080;
+        border-bottom: 3px solid #808080;
+        padding: 6px 10px;
+        font-family: Arial, sans-serif;
+        font-size: 10px;
+        color: #000;
+        user-select: none;
+        max-width: 140px;
+        text-align: center;
+        line-height: 1.5;
+      }
+      #session-badge b { font-size: 14px; display: block; }
+    </style>
+  </head>
+  <body style="
+    background-image: url('https://frutigeraeroarchive.org/images/introduction/thumbnails/asadal.jpg');
+    background-size: cover;
+    background-repeat: no-repeat;
+    background-position: center;
+  ">
+
+    <!-- CRT scanlines -->
+    <div id="crt-overlay"></div>
+
+    <!-- matrix canvas (konami easter egg) -->
+    <canvas id="matrix-canvas"></canvas>
+
+    <!-- haxxed overlay (konami easter egg) -->
+    <div id="haxxed-overlay">
+      <h1>ACCESS GRANTED</h1>
+      <p style="color:#00ff00;margin-top:20px;font-size:20px;">welcome to the inner sanctum, hacker</p>
+      <p style="color:#00ff00;margin-top:10px;font-size:13px;">[ click anywhere to exit ]</p>
+    </div>
+
+    <div class="uc-wrapper">
+      <marquee behavior="scroll" direction="left" scrollamount="4">
+        <div class="uc-content">
+          <img src="https://cyber.dabamos.de/images/construction.gif" alt="under construction" style="height: 38px; vertical-align: middle;">
+          <span class="uc-text" id="ucText"></span>
+          <img src="https://cyber.dabamos.de/images/construction.gif" alt="under construction" style="height: 38px; vertical-align: middle;">
+          <span class="uc-text" id="ucText2"></span>
+          <img src="https://cyber.dabamos.de/images/construction.gif" alt="under construction" style="height: 38px; vertical-align: middle;">
+          <span class="uc-text" id="ucText3"></span>
+          <img src="https://cyber.dabamos.de/images/construction.gif" alt="under construction" style="height: 38px; vertical-align: middle;">
+        </div>
+      </marquee>
+    </div>
+
+    <h1><span class="glitch" data-text="atomicdude presents!!!">atomicdude presents!!!</span></h1>
+    <h2>Atomicunwasteland <span style="font-size:0.6em;color:#ff0;background:#111;padding:2px 6px;border-radius:3px;letter-spacing:2px;">NIGHTLY</span></h2>
+    <h3>Welcome! to my corner of the information superhighway</h3>
+
+    <!-- View counter -->
+    <div id="view-counter" style="position:fixed;top:60px;right:20px;cursor:grab;z-index:9999;user-select:none;background:#c0c0c0;border-top:3px solid #808080;border-left:3px solid #808080;border-right:3px solid #fff;border-bottom:3px solid #fff;padding:8px 10px;font-family:Arial,sans-serif;">
+      <div style="font-size:11px;font-weight:bold;text-align:center;letter-spacing:3px;color:#000;margin-bottom:6px;text-transform:uppercase;">Views</div>
+      <div style="text-align:center;">
+        <span class="flip-digit" id="nc-d0">0</span><span class="flip-digit" id="nc-d1">0</span><span class="flip-digit" id="nc-d2">0</span><span class="flip-digit" id="nc-d3">0</span><span class="flip-digit" id="nc-d4">0</span>
+      </div>
+    </div>
+
+    <!-- Retro clock -->
+    <div id="retro-clock">00:00:00</div>
+
+    <!-- Session visitor badge -->
+    <div id="session-badge">
+      <span>you are visitor</span>
+      <b id="visitor-num">#???</b>
+      <span>on this device</span>
+    </div>
+
+    <script>
+      /* ---- view counter ---- */
+      function renderDigits(n) {
+        var str = String(n).padStart(5, '0');
+        for (var i = 0; i < 5; i++) {
+          document.getElementById('nc-d' + i).textContent = str[i];
+        }
+      }
+      var COUNTER_API = 'https://abacus.jasoncameron.dev';
+      function refreshViews() {
+        fetch(COUNTER_API + '/get/atomicunwasteland/views')
+          .then(function(r) { return r.json(); })
+          .then(function(d) { renderDigits(d.value); })
+          .catch(function() {});
+      }
+      if (!sessionStorage.getItem('nc-counted')) {
+        sessionStorage.setItem('nc-counted', '1');
+        fetch(COUNTER_API + '/hit/atomicunwasteland/views')
+          .then(function(r) { return r.json(); })
+          .then(function(d) { renderDigits(d.value); })
+          .catch(refreshViews);
+      } else {
+        refreshViews();
+      }
+      setInterval(refreshViews, 10000);
+
+      /* ---- drag view counter ---- */
+      (function() {
+        var el = document.getElementById('view-counter');
+        var dragging = false, ox = 0, oy = 0;
+        el.addEventListener('mousedown', function(e) {
+          dragging = true;
+          ox = e.clientX - el.getBoundingClientRect().left;
+          oy = e.clientY - el.getBoundingClientRect().top;
+          el.style.cursor = 'grabbing';
+          el.style.right = 'auto';
+          e.preventDefault();
+        });
+        document.addEventListener('mousemove', function(e) {
+          if (!dragging) return;
+          el.style.left = (e.clientX - ox) + 'px';
+          el.style.top = (e.clientY - oy) + 'px';
+        });
+        document.addEventListener('mouseup', function() { dragging = false; el.style.cursor = 'grab'; });
+      })();
+
+      /* ---- live clock ---- */
+      function updateClock() {
+        var now = new Date();
+        var h = String(now.getHours()).padStart(2,'0');
+        var m = String(now.getMinutes()).padStart(2,'0');
+        var s = String(now.getSeconds()).padStart(2,'0');
+        document.getElementById('retro-clock').textContent = h + ':' + m + ':' + s;
+      }
+      updateClock();
+      setInterval(updateClock, 1000);
+
+      /* ---- session visitor counter ---- */
+      (function() {
+        var count = parseInt(localStorage.getItem('nc_visitor_count') || '0') + 1;
+        localStorage.setItem('nc_visitor_count', count);
+        document.getElementById('visitor-num').textContent = '#' + count;
+      })();
+
+      /* ---- cursor sparkle trail ---- */
+      (function() {
+        var colors = ['#ff0','#f0f','#0ff','#f80','#0f8','#80f','#fff'];
+        document.addEventListener('mousemove', function(e) {
+          if (Math.random() > 0.4) return;
+          var s = document.createElement('div');
+          var size = Math.random() * 10 + 4;
+          s.style.cssText = [
+            'position:fixed',
+            'left:' + (e.clientX - size/2) + 'px',
+            'top:' + (e.clientY - size/2) + 'px',
+            'width:' + size + 'px',
+            'height:' + size + 'px',
+            'border-radius:50%',
+            'background:' + colors[Math.floor(Math.random() * colors.length)],
+            'pointer-events:none',
+            'z-index:99997',
+            'transition:opacity 0.6s,transform 0.6s',
+            'opacity:1'
+          ].join(';');
+          document.body.appendChild(s);
+          requestAnimationFrame(function() {
+            s.style.opacity = '0';
+            s.style.transform = 'translateY(-' + (Math.random()*30+10) + 'px) scale(0.2)';
+          });
+          setTimeout(function() { s.parentNode && s.parentNode.removeChild(s); }, 700);
+        });
+      })();
+
+      /* ---- konami code easter egg ---- */
+      (function() {
+        var code = [38,38,40,40,37,39,37,39,66,65];
+        var idx = 0;
+        document.addEventListener('keydown', function(e) {
+          if (e.keyCode === code[idx]) { idx++; } else { idx = 0; }
+          if (idx === code.length) {
+            idx = 0;
+            activateHaxxed();
+          }
+        });
+
+        function activateHaxxed() {
+          var overlay = document.getElementById('haxxed-overlay');
+          var canvas = document.getElementById('matrix-canvas');
+          canvas.width = window.innerWidth;
+          canvas.height = window.innerHeight;
+          overlay.classList.add('active');
+          canvas.classList.add('active');
+          var ctx = canvas.getContext('2d');
+          var cols = Math.floor(canvas.width / 16);
+          var drops = Array(cols).fill(1);
+          var interval = setInterval(function() {
+            ctx.fillStyle = 'rgba(0,0,0,0.05)';
+            ctx.fillRect(0, 0, canvas.width, canvas.height);
+            ctx.fillStyle = '#00ff00';
+            ctx.font = '15px Courier New';
+            for (var i = 0; i < drops.length; i++) {
+              var ch = String.fromCharCode(0x30A0 + Math.random() * 96);
+              ctx.fillText(ch, i * 16, drops[i] * 16);
+              if (drops[i] * 16 > canvas.height && Math.random() > 0.975) drops[i] = 0;
+              drops[i]++;
+            }
+          }, 40);
+
+          overlay.addEventListener('click', function close() {
+            overlay.classList.remove('active');
+            canvas.classList.remove('active');
+            ctx.clearRect(0, 0, canvas.width, canvas.height);
+            clearInterval(interval);
+            overlay.removeEventListener('click', close);
+          }, { once: true });
+        }
+      })();
+
+      /* ---- wave marquee text ---- */
+      const text = "THIS WEBSITE IS STILL UNDER CONSTRUCTION WATCH YOUR STEP";
+      const makeWave = (id) => {
+        document.getElementById(id).innerHTML = text.split('').map((char, i) =>
+          `<span style="animation-delay:${(i * 0.06).toFixed(2)}s">${char === ' ' ? '&nbsp;&nbsp;' : char}</span>`
+        ).join('');
+      };
+      makeWave('ucText');
+      makeWave('ucText2');
+      makeWave('ucText3');
+    </script>
+
+    <marquee><h2>my creation!</h2></marquee>
+    <a href="/devicelibrary"><img src="/icons/cooldevices.png" alt="device library"></a>
+<a href="/GAMEZ.html"><img src="/icons/Games!.png"></a>
+<a href="https://atomicunwasteland.neocities.org/airlitepage.html"><img src="/icons/lite%20page.png">
+<a href="/hobbypage.html"><img src="/icons/myhobbies88x31.png"></a>
+
+<p>88x31's above made with <a href="https://datakra.sh"><img src="https://datakra.sh/assets/datakrashbutton.png"></a>
+
+<p>The person who showed me what neocities even was!<a href="https://onio.club"><img src="https://onio.club/thebutton.gif" alt="onio's website"></a></p>
+    <ul>
+      <li>programming</li>
+      <li>cats</li>
+      <li>old computers!</li>
+      <li>3d modeling <a href="https://makerworld.com/en/@us3rm4m3">my makerworld page</a></li>
+      <li>anime</li>
+      <li>linux</li>
+      <li>open source <a href="https://github.com/Ilikehomeassistant/">my github page</a></li>
+    </ul>
+
+
+<script>
+window['CboxReady'] = function (Cbox) {
+	Cbox('button', '5-963676-DUk9Nw');
+}
+</script>
+<script src="https://static.cbox.ws/embed/2.js" async></script>
+
+
+
+
+    <!-- 88x31 buttons -->
+    <img src="https://cyber.dabamos.de/images/norton.gif">
+    <img src="https://cyber.dabamos.de/88x31/bestview.gif" alt="best viewed">
+    <img src="https://cyber.dabamos.de/88x31/madewithneo.gif" alt="made with neocities">
+    <img src="https://cyber.dabamos.de/88x31/javanow.gif" alt="java">
+    <img src="https://cyber.dabamos.de/88x31/debian-powered.gif" alt="debian">
+    <img src="https://cyber.dabamos.de/88x31/neocities_hosted.gif" alt="neocities hosted">
+    <img src="https://cyber.dabamos.de/88x31/aol_instant3.gif" alt="aol instant">
+    <img src="https://cyber.dabamos.de/88x31/cnet.gif" alt="cnet">
+    <img src="https://cyber.dabamos.de/88x31/ppc.gif" alt="ppc">
+    <img src="https://cyber.dabamos.de/88x31/linux_powered.gif" alt="linux">
+
+    <a href="mailto:?subject=Look%20at%20this%20cool%20website%20I%20found!&body=Hey%20there,%20I%20found%20this%20cool%20website.%20Click%20this%20to%20visit%20it:%20https://atomicunwasteland.neocities.org">
+      <img src="https://cyber.dabamos.de/88x31/sendit.gif" alt="send it">
+    </a>
+    <img src="https://cyber.dabamos.de/88x31/home-assistant.gif">
+    <img src="https://cyber.dabamos.de/88x31/sun.gif" alt="sun microsystems">
+    <img src="https://cyber.dabamos.de/88x31/gimp.gif" alt="gimp">
+    <img src="https://cyber.dabamos.de/88x31/neocities.gif" alt="neocities">
+    <a href="https://gizmodo.com/download/adobe-flash-player"><img src="https://cyber.dabamos.de/88x31/adobe_getflash4.gif" alt="adobe flash"></a>
+    <img src="https://cyber.dabamos.de/88x31/nokia64.gif" alt="nokia">
+    <img src="https://cyber.dabamos.de/88x31/right2repair.gif" alt="right to repair">
+    <img src="https://cyber.dabamos.de/88x31/realplayer7.gif" alt="realplayer">
+    <img src="https://cyber.dabamos.de/88x31/4x3_fade.gif" alt="4x3">
+    <img src="https://cyber.dabamos.de/88x31/ravenow3.gif" alt="rave now">
+    <img src="https://onio.club/thebutton.gif" alt="onio's website">
+
+    <a href="https://tabf5.com/" target="_blank"><img src="https://tabf5.com/img/button.gif" alt="TabF5.com" style="image-rendering: pixelated;"></a>
+
+<img src="https://cyber.dabamos.de/88x31/hackerpowered.gif">
+
+    <h2>--Net neighbours!--</h2>
+    <a href="https://danielthegoat.neocities.org"><img src="/icons/danielisthegoat88x31.png"></a><p>My friend Daniel!</p>
+
+  </body>
+</html>
