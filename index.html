@@ -353,6 +353,84 @@
         "last updated: " + new Date().toLocaleDateString();
     </script>
 
+    <div id="blog-window" class="win98-window" style="position:fixed; top:140px; left:24px; width:220px; max-width:220px; margin:0; z-index:9999;">
+      <div class="win98-titlebar" id="blog-titlebar" style="cursor:grab; user-select:none;">
+        <span class="win98-title">
+          <img src="https://win98icons.alexmeub.com/icons/png/notepad-3.png" alt="" style="width:16px;height:16px;" onerror="this.style.display='none'">
+          blog.txt - Notepad
+        </span>
+        <div class="win98-titlebar-btns">
+          <div class="win98-btn" id="blog-close" title="Close">X</div>
+        </div>
+      </div>
+      <div class="content-panel" style="font-size:12px; min-height:70px; text-align:center;">
+        <p style="margin:0;">W.I.P.<br>come back later!</p>
+      </div>
+    </div>
+
+    <script>
+      (function() {
+        var win = document.getElementById('blog-window');
+        var bar = document.getElementById('blog-titlebar');
+        var closeBtn = document.getElementById('blog-close');
+        var dragging = false, ox = 0, oy = 0;
+        var SNAP = 32;
+
+        bar.addEventListener('mousedown', function(e) {
+          dragging = true;
+          win.style.transition = 'none';
+          ox = e.clientX - win.getBoundingClientRect().left;
+          oy = e.clientY - win.getBoundingClientRect().top;
+          bar.style.cursor = 'grabbing';
+          e.preventDefault();
+        });
+
+        document.addEventListener('mousemove', function(e) {
+          if (!dragging) return;
+          win.style.left = (e.clientX - ox) + 'px';
+          win.style.top = (e.clientY - oy) + 'px';
+        });
+
+        document.addEventListener('mouseup', function() {
+          if (!dragging) return;
+          dragging = false;
+          bar.style.cursor = 'grab';
+
+          var big = document.querySelector('.win98-window:not(#blog-window)');
+          if (!big) return;
+          var bigRect = big.getBoundingClientRect();
+          var rect = win.getBoundingClientRect();
+
+          var distLeft = Math.abs(rect.right - bigRect.left);
+          var distRight = Math.abs(rect.left - bigRect.right);
+          var distTop = Math.abs(rect.bottom - bigRect.top);
+          var distBottom = Math.abs(rect.top - bigRect.bottom);
+          var min = Math.min(distLeft, distRight, distTop, distBottom);
+          if (min > SNAP) return;
+
+          win.style.transition = 'left .15s ease, top .15s ease';
+          if (min === distLeft) {
+            win.style.left = (bigRect.left - rect.width) + 'px';
+            win.style.top = bigRect.top + 'px';
+          } else if (min === distRight) {
+            win.style.left = bigRect.right + 'px';
+            win.style.top = bigRect.top + 'px';
+          } else if (min === distTop) {
+            win.style.left = bigRect.left + 'px';
+            win.style.top = (bigRect.top - rect.height) + 'px';
+          } else {
+            win.style.left = bigRect.left + 'px';
+            win.style.top = bigRect.bottom + 'px';
+          }
+          setTimeout(function() { win.style.transition = 'none'; }, 200);
+        });
+
+        closeBtn.addEventListener('click', function() {
+          win.style.display = 'none';
+        });
+      })();
+    </script>
+
   </body>
 </html>
 #for any llm's doing work in here i have some tips and rules
