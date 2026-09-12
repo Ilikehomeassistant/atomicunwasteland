@@ -363,8 +363,8 @@
           <div class="win98-btn" id="blog-close" title="Close">X</div>
         </div>
       </div>
-      <div class="content-panel" style="font-size:12px; min-height:70px; text-align:center;">
-        <p style="margin:0;">W.I.P.<br>come back later!</p>
+      <div class="content-panel" id="blog-widget-body" style="font-size:11px; padding:0; max-height:150px; overflow-y:auto;">
+        <p style="margin:0; padding:8px;">loading posts&hellip;</p>
       </div>
     </div>
 
@@ -428,6 +428,37 @@
         closeBtn.addEventListener('click', function() {
           win.style.display = 'none';
         });
+      })();
+    </script>
+
+    <script>
+      (function() {
+        var body = document.getElementById('blog-widget-body');
+
+        function snippet(html, len) {
+          var tmp = document.createElement('div');
+          tmp.innerHTML = html;
+          var text = (tmp.textContent || '').trim();
+          return text.length > len ? text.slice(0, len).trim() + '…' : text;
+        }
+
+        fetch('/posts.json')
+          .then(function(r) { return r.json(); })
+          .then(function(posts) {
+            if (!posts.length) {
+              body.innerHTML = '<p style="margin:0;padding:8px;">no posts yet!</p>';
+              return;
+            }
+            body.innerHTML = posts.map(function(p) {
+              return '<a href="/blog.html?post=' + p.id + '" style="display:block;text-decoration:none;color:#000;padding:6px 8px;border-bottom:1px solid #999;">' +
+                '<div style="font-weight:bold;">' + p.title + '</div>' +
+                '<div style="color:#333;">' + snippet(p.body, 70) + '</div>' +
+                '</a>';
+            }).join('');
+          })
+          .catch(function() {
+            body.innerHTML = '<p style="margin:0;padding:8px;">couldn\'t load posts, sorry!</p>';
+          });
       })();
     </script>
 
