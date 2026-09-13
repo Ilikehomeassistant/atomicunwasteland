@@ -1,0 +1,261 @@
+<!DOCTYPE html>
+<html>
+  <head>
+
+    <meta charset="UTF-8">
+    <title>atomicunwasteland // blog</title>
+    <link rel="icon" type="image/jpeg" href="https://atomicunwasteland.neocities.org/icons/favicon.png">
+    <link rel="preconnect" href="https://fonts.googleapis.com">
+    <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
+    <link href="https://fonts.googleapis.com/css2?family=VT323&display=swap" rel="stylesheet">
+    <style>
+      body {
+        margin: 0;
+        font-family: Verdana, Geneva, sans-serif;
+        color: #111;
+      }
+
+      .page-bg {
+        background-image: url('https://frutigeraeroarchive.org/images/introduction/thumbnails/asadal.jpg');
+        background-size: cover;
+        background-repeat: no-repeat;
+        background-position: center top;
+        background-attachment: fixed;
+        min-height: 100vh;
+        padding: 10px;
+        box-sizing: border-box;
+      }
+
+      .win98-window {
+        max-width: 700px;
+        margin: 10px auto;
+        background: #c0c0c0;
+        padding: 3px;
+        box-shadow:
+          inset -1px -1px 0 #0a0a0a,
+          inset 1px 1px 0 #fff,
+          inset -2px -2px 0 #808080,
+          inset 2px 2px 0 #dfdfdf;
+        font-family: Tahoma, "MS Sans Serif", Geneva, sans-serif;
+      }
+
+      .win98-titlebar {
+        background: linear-gradient(90deg, #000080, #1084d0);
+        color: #fff;
+        font-family: Tahoma, "MS Sans Serif", Geneva, sans-serif;
+        font-weight: bold;
+        font-size: 13px;
+        padding: 3px 3px 3px 6px;
+        display: flex;
+        justify-content: space-between;
+        align-items: center;
+        margin-bottom: 2px;
+      }
+      .win98-titlebar .win98-title {
+        display: flex;
+        align-items: center;
+        gap: 5px;
+        white-space: nowrap;
+        overflow: hidden;
+        text-overflow: ellipsis;
+      }
+      .win98-titlebar-btns { display: flex; gap: 2px; }
+      .win98-btn {
+        width: 16px;
+        height: 14px;
+        background: #c0c0c0;
+        box-shadow:
+          inset -1px -1px 0 #0a0a0a,
+          inset 1px 1px 0 #fff,
+          inset -2px -2px 0 #808080,
+          inset 2px 2px 0 #dfdfdf;
+        font-family: "Marlett", Tahoma, sans-serif;
+        font-size: 10px;
+        line-height: 12px;
+        color: #000;
+        text-align: center;
+        cursor: default;
+        user-select: none;
+      }
+
+      .win98-menubar {
+        display: flex;
+        gap: 14px;
+        font-size: 12px;
+        padding: 3px 8px;
+        border-bottom: 1px solid #808080;
+        box-shadow: 0 1px 0 #fff;
+        margin-bottom: 4px;
+      }
+      .win98-menubar span { cursor: default; }
+      .win98-menubar span:first-letter { text-decoration: underline; }
+
+      .back-link {
+        font-size: 11px;
+        padding: 4px 8px 0;
+        margin: 0 4px;
+      }
+      .back-link a { color: #000; text-decoration: underline; }
+
+      .msn-banner {
+        display: flex;
+        align-items: center;
+        gap: 10px;
+        margin: 4px 4px 0;
+        padding: 10px 12px;
+        background: linear-gradient(180deg, #eef3fb, #cfe0f2);
+        border: 1px solid #7fa8d0;
+        box-shadow: inset -1px -1px 0 #fff, inset 1px 1px 0 #808080;
+      }
+      .msn-banner img { width: 32px; height: 32px; flex-shrink: 0; }
+      .msn-banner .msn-title {
+        font-family: "Comic Sans MS", "Chalkboard SE", "Comic Neue", cursive, sans-serif;
+        font-size: 1.6rem;
+        font-weight: bold;
+        color: #003d7a;
+      }
+      .msn-banner .msn-tag {
+        margin-left: auto;
+        font-size: 11px;
+        color: #555;
+        white-space: nowrap;
+      }
+
+      .news-feed {
+        margin: 4px;
+        background: #fdfdf0;
+        box-shadow: inset -1px -1px 0 #fff, inset 1px 1px 0 #808080;
+        padding: 4px 14px;
+      }
+
+      .story {
+        border-bottom: 1px dashed #b8b8a0;
+        padding: 12px 0;
+        scroll-margin-top: 12px;
+      }
+      .story:last-child { border-bottom: none; }
+      .story.highlight { background: #fff6cf; }
+
+      .story-head { display: flex; align-items: center; gap: 8px; }
+      .story-head img { width: 20px; height: 20px; flex-shrink: 0; }
+      .story h3 {
+        margin: 0;
+        font-family: "Comic Sans MS", "Chalkboard SE", "Comic Neue", cursive, sans-serif;
+        font-size: 1.3rem;
+        color: #000;
+      }
+      .story .story-tag {
+        font-size: 10px;
+        font-weight: bold;
+        letter-spacing: 1px;
+        color: #003d7a;
+        background: #dce8f8;
+        border: 1px solid #7fa8d0;
+        padding: 1px 5px;
+        border-radius: 2px;
+      }
+      .story .post-date { font-size: 11px; color: #666; margin: 2px 0 8px 28px; }
+      .story .story-body { margin-left: 28px; font-size: 13px; }
+      .story .story-body p { line-height: 1.5; margin: 0 0 8px; }
+      .story .story-body p:last-child { margin-bottom: 0; }
+
+      .win98-statusbar {
+        display: flex;
+        justify-content: space-between;
+        font-size: 11px;
+        color: #000;
+        margin: 6px 4px 2px;
+        padding: 2px 6px;
+        box-shadow: inset -1px -1px 0 #fff, inset 1px 1px 0 #808080;
+      }
+
+      @media (max-width: 640px) {
+        .story .post-date, .story .story-body { margin-left: 0; }
+      }
+    </style>
+  </head>
+  <body>
+    <div class="page-bg">
+      <div class="win98-window">
+        <div class="win98-titlebar">
+          <span class="win98-title">
+            <img src="https://win98icons.alexmeub.com/icons/png/msn_cool-4.png" alt="" style="width:16px;height:16px;" onerror="this.style.display='none'">
+            blog - MSN News
+          </span>
+          <div class="win98-titlebar-btns">
+            <div class="win98-btn">_</div>
+            <div class="win98-btn">&#9633;</div>
+            <div class="win98-btn">X</div>
+          </div>
+        </div>
+        <div class="win98-menubar">
+          <span><a href="/" style="color:#000;text-decoration:none;">Home</a></span>
+          <span>News</span>
+          <span>Blog</span>
+          <span>Money</span>
+          <span>Weather</span>
+          <span>Help</span>
+        </div>
+
+        <div class="msn-banner">
+          <img src="https://win98icons.alexmeub.com/icons/png/msn_cool-4.png" alt="" onerror="this.style.display='none'">
+          <span class="msn-title">Atomicdude's blog</span>
+        </div>
+
+        <div class="news-feed" id="newsFeed"></div>
+
+        <div class="win98-statusbar">
+          <span id="postCount">0 post(s)</span>
+          <span id="lastUpdated"></span>
+        </div>
+      </div>
+    </div>
+
+    <script>
+      var feedEl = document.getElementById('newsFeed');
+
+      function renderFeed(posts) {
+        if (!posts.length) {
+          feedEl.innerHTML = '<p style="padding:10px 0;">no posts yet &mdash; check back later!</p>';
+          return;
+        }
+        feedEl.innerHTML = posts.map(function(p) {
+          return (
+            '<div class="story" id="post-' + p.id + '">' +
+              '<div class="story-head">' +
+                '<img src="' + p.icon + '" alt="" onerror="this.style.display=\'none\'">' +
+                '<h3>' + p.title + '</h3>' +
+                '<span class="story-tag">BLOG</span>' +
+              '</div>' +
+              '<div class="post-date">' + p.date + '</div>' +
+              '<div class="story-body">' + p.body + '</div>' +
+            '</div>'
+          );
+        }).join('');
+      }
+
+      fetch('/posts.json')
+        .then(function(r) { return r.json(); })
+        .then(function(posts) {
+          renderFeed(posts);
+          document.getElementById('postCount').textContent = posts.length + ' post(s)';
+
+          var wantedId = parseInt(new URLSearchParams(location.search).get('post'), 10);
+          if (wantedId) {
+            var target = document.getElementById('post-' + wantedId);
+            if (target) {
+              target.scrollIntoView({ behavior: 'smooth', block: 'start' });
+              target.classList.add('highlight');
+              setTimeout(function() { target.classList.remove('highlight'); }, 2500);
+            }
+          }
+        })
+        .catch(function() {
+          feedEl.innerHTML = '<p style="padding:10px 0;">couldn\'t load posts right now, sorry!</p>';
+        });
+
+      document.getElementById('lastUpdated').textContent =
+        'last updated: ' + new Date().toLocaleDateString();
+    </script>
+  </body>
+</html>

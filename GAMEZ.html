@@ -1,0 +1,1966 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+<meta charset="UTF-8" />
+<meta name="viewport" content="width=device-width, initial-scale=1.0" />
+<title>Games</title>
+<style>
+  * { box-sizing: border-box; }
+  html, body {
+    margin: 0;
+    height: 100%;
+    font-family: 'Tahoma', 'MS Sans Serif', 'Courier New', monospace;
+    overflow: hidden;
+    user-select: none;
+  }
+
+  /* ================= DESKTOP ================= */
+  #desktop {
+    position: relative;
+    width: 100vw;
+    height: 100vh;
+    background: #CEE887;
+    overflow: hidden;
+  }
+
+  .desktop-icons {
+    position: absolute;
+    top: 14px;
+    left: 10px;
+    display: flex;
+    flex-direction: column;
+    gap: 18px;
+  }
+  .desktop-icon {
+    width: 74px;
+    display: flex;
+    flex-direction: column;
+    align-items: center;
+    gap: 4px;
+    padding: 4px 2px;
+    cursor: pointer;
+  }
+  .desktop-icon img { width: 32px; height: 32px; display: block; image-rendering: -moz-crisp-edges; image-rendering: -webkit-optimize-contrast; image-rendering: pixelated; }
+  .desktop-icon svg { width: 32px; height: 32px; display: block; shape-rendering: crispEdges; }
+  .desktop-icon span {
+    color: #fff;
+    font-size: 11px;
+    text-align: center;
+    text-shadow: 1px 1px 1px #000;
+    line-height: 1.2;
+    padding: 1px 3px;
+  }
+  .desktop-icon.selected span {
+    background: #000080;
+    outline: 1px dotted #fff;
+  }
+
+  /* ================= WIN98 WINDOW CHROME ================= */
+  .win98 {
+    position: absolute;
+    background: #c0c0c0;
+    border: 3px outset #c0c0c0;
+    box-shadow: 2px 2px 6px rgba(0,0,0,0.5);
+    display: none;
+  }
+  .win98-titlebar {
+    background: linear-gradient(90deg, #000080, #1084d0);
+    color: #fff;
+    font-weight: bold;
+    font-size: 0.85rem;
+    letter-spacing: 1px;
+    padding: 4px 4px 4px 8px;
+    display: flex;
+    align-items: center;
+    justify-content: space-between;
+    cursor: grab;
+  }
+  .win98-titlebar:active { cursor: grabbing; }
+  .win98-titlebar-left {
+    display: flex;
+    align-items: center;
+    gap: 6px;
+  }
+  .win98-titlebar-left img { width: 14px; height: 14px; image-rendering: -moz-crisp-edges; image-rendering: -webkit-optimize-contrast; image-rendering: pixelated; }
+  .win98-titlebar-left svg { width: 14px; height: 14px; shape-rendering: crispEdges; }
+  .win98-titlebar-buttons {
+    display: flex;
+    gap: 3px;
+  }
+  .win98-titlebar-buttons button {
+    width: 20px;
+    height: 18px;
+    border: 2px outset #c0c0c0;
+    background: #c0c0c0;
+    color: #000;
+    font-size: 11px;
+    font-weight: bold;
+    font-family: 'Courier New', monospace;
+    line-height: 1;
+    padding: 0;
+    cursor: pointer;
+  }
+  .win98-titlebar-buttons button:active { border-style: inset; }
+
+  .win98-body { padding: 4px; }
+  .win98-body-inner {
+    border: 2px inset #c0c0c0;
+    background: #000;
+    overflow: hidden;
+  }
+  .win98-body-inner iframe { display: block; border: none; }
+
+  .win98.minimized { display: none !important; }
+  .win98.maximized {
+    top: 0 !important;
+    left: 0 !important;
+    width: 100vw !important;
+    height: calc(100vh - 30px) !important;
+  }
+  .win98.maximized .win98-body-inner { width: 100% !important; height: calc(100% - 34px) !important; }
+  .win98.maximized .win98-body-inner iframe { width: 100% !important; height: 100% !important; }
+
+  /* ================= DIALOGS (shutdown confirm, info popups) ================= */
+  .win98-dialog-overlay {
+    position: fixed;
+    top: 0; left: 0; width: 100%; height: 100%;
+    background: rgba(0,0,0,0.3);
+    display: flex;
+    align-items: center;
+    justify-content: center;
+    z-index: 5000;
+  }
+  .win98-dialog {
+    background: #c0c0c0;
+    border: 3px outset #c0c0c0;
+    min-width: 280px;
+    box-shadow: 2px 2px 8px rgba(0,0,0,0.5);
+  }
+  .win98-dialog-titlebar {
+    background: linear-gradient(90deg, #000080, #1084d0);
+    color: #fff;
+    font-weight: bold;
+    font-size: 0.85rem;
+    padding: 4px 8px;
+  }
+  .win98-dialog-body {
+    padding: 18px 16px;
+    display: flex;
+    gap: 14px;
+    align-items: flex-start;
+    font-size: 0.85rem;
+    color: #000;
+  }
+  .win98-dialog-buttons {
+    display: flex;
+    gap: 8px;
+    justify-content: center;
+    padding: 0 16px 16px;
+  }
+  .win98-dialog-buttons button {
+    background: #c0c0c0;
+    border: 2px outset #c0c0c0;
+    padding: 6px 18px;
+    font-family: 'Tahoma', monospace;
+    font-size: 0.8rem;
+    cursor: pointer;
+  }
+  .win98-dialog-buttons button:active { border-style: inset; }
+
+  /* ================= TASKBAR ================= */
+  #taskbar {
+    position: fixed;
+    bottom: 0; left: 0; width: 100%;
+    height: 30px;
+    background: #c0c0c0;
+    border-top: 2px solid #fff;
+    box-shadow: 0 -1px 0 #808080 inset;
+    display: flex;
+    align-items: center;
+    padding: 2px 3px;
+    gap: 4px;
+    z-index: 4000;
+  }
+  #startBtn {
+    display: flex;
+    align-items: center;
+    gap: 4px;
+    height: 24px;
+    border: 2px outset #c0c0c0;
+    background: #c0c0c0;
+    font-weight: bold;
+    font-size: 0.85rem;
+    font-family: 'Tahoma', monospace;
+    padding: 0 8px;
+    cursor: pointer;
+  }
+  #startBtn:active, #startBtn.active { border-style: inset; }
+  #startBtn img { width: 16px; height: 16px; image-rendering: -moz-crisp-edges; image-rendering: -webkit-optimize-contrast; image-rendering: pixelated; }
+
+  #taskbarSep {
+    width: 2px;
+    height: 22px;
+    border-left: 1px solid #808080;
+    border-right: 1px solid #fff;
+    margin: 0 2px;
+  }
+
+  #taskbarApps {
+    flex: 1;
+    display: flex;
+    gap: 3px;
+    overflow: hidden;
+  }
+  .taskbar-app-btn {
+    height: 24px;
+    max-width: 160px;
+    border: 2px outset #c0c0c0;
+    background: #c0c0c0;
+    font-size: 0.78rem;
+    font-family: 'Tahoma', monospace;
+    padding: 0 8px;
+    display: flex;
+    align-items: center;
+    gap: 5px;
+    cursor: pointer;
+    white-space: nowrap;
+    overflow: hidden;
+    text-overflow: ellipsis;
+  }
+  .taskbar-app-btn svg { width: 14px; height: 14px; flex-shrink: 0; }
+  .taskbar-app-btn.active { border-style: inset; background: #d4d0c8; }
+
+  #taskbarClock {
+    height: 24px;
+    border: 1px inset #c0c0c0;
+    padding: 0 10px;
+    display: flex;
+    align-items: center;
+    font-size: 0.78rem;
+    font-family: 'Tahoma', monospace;
+    color: #000;
+  }
+
+  /* ================= START MENU ================= */
+  #startMenu {
+    position: fixed;
+    bottom: 30px;
+    left: 2px;
+    width: 220px;
+    background: #c0c0c0;
+    border: 3px outset #c0c0c0;
+    box-shadow: 2px 2px 8px rgba(0,0,0,0.5);
+    display: none;
+    z-index: 4500;
+    flex-direction: row;
+  }
+  #startMenu.open { display: flex; }
+  .start-menu-banner {
+    width: 26px;
+    background: linear-gradient(180deg, #000080, #1084d0);
+    display: flex;
+    align-items: center;
+    justify-content: center;
+    padding: 6px 0;
+  }
+  .start-menu-banner span {
+    color: #fff;
+    font-weight: bold;
+    font-size: 0.95rem;
+    letter-spacing: 2px;
+    writing-mode: vertical-rl;
+    transform: rotate(180deg);
+  }
+  .start-menu-items { flex: 1; padding: 3px; }
+  .start-menu-item {
+    display: flex;
+    align-items: center;
+    gap: 8px;
+    padding: 6px 10px;
+    font-size: 0.82rem;
+    cursor: pointer;
+    position: relative;
+  }
+  .start-menu-item img { width: 18px; height: 18px; flex-shrink: 0; image-rendering: -moz-crisp-edges; image-rendering: -webkit-optimize-contrast; image-rendering: pixelated; background: #111; border: 1px solid #808080; padding: 1px; }
+  .start-menu-item svg { width: 18px; height: 18px; flex-shrink: 0; shape-rendering: crispEdges; background: #111; border: 1px solid #808080; padding: 1px; }
+  .start-menu-item:hover { background: #000080; color: #fff; }
+  .start-menu-item .arrow { margin-left: auto; font-size: 0.7rem; }
+  .start-menu-sep {
+    border-top: 1px solid #808080;
+    border-bottom: 1px solid #fff;
+    margin: 3px 4px;
+  }
+  #programsSubmenu {
+    position: absolute;
+    left: 100%;
+    top: 0;
+    width: 170px;
+    background: #c0c0c0;
+    border: 3px outset #c0c0c0;
+    box-shadow: 2px 2px 8px rgba(0,0,0,0.5);
+    display: none;
+    padding: 3px;
+  }
+  #programsSubmenu.open { display: block; }
+
+  /* ================= SHUTDOWN SCREEN ================= */
+  #shutdownScreen {
+    position: fixed;
+    top: 0; left: 0; width: 100%; height: 100%;
+    background: #1a1a6e;
+    color: #fff;
+    display: none;
+    align-items: center;
+    justify-content: center;
+    font-family: 'Tahoma', monospace;
+    font-size: 1.3rem;
+    text-align: center;
+    z-index: 9999;
+    cursor: pointer;
+  }
+  #shutdownScreen.open { display: flex; }
+
+  /* ================= SCREENSAVER ================= */
+  #screensaver {
+    position: fixed;
+    top: 0; left: 0; width: 100%; height: 100%;
+    background: #000;
+    display: none;
+    z-index: 8000;
+    cursor: none;
+  }
+  #screensaver.active { display: block; }
+  #screensaverCanvas { display: block; width: 100%; height: 100%; }
+  #screensaverHint {
+    position: absolute;
+    bottom: 10px;
+    right: 16px;
+    color: #444;
+    font-size: 0.7rem;
+    font-family: 'Courier New', monospace;
+    letter-spacing: 1px;
+  }
+</style>
+</head>
+
+<body>
+
+
+<div id="desktop">
+
+  <div class="desktop-icons">
+
+    <div class="desktop-icon" data-action="info" data-title="My Computer" data-msg="(C:) Hard Disk — 4.2GB free of 4.2GB. Nothing in here but vibes.">
+      <img src="data:image/png;base64,iVBORw0KGgoAAAANSUhEUgAAACAAAAAgBAMAAACBVGfHAAAABGdBTUEAALGPC/xhBQAAACBjSFJNAAB6JgAAgIQAAPoAAACA6AAAdTAAAOpgAAA6mAAAF3CculE8AAAAIVBMVEUAAACAgIDAwMD///8AAAAAgIAA//8AAIAAAP8A/wAAgAC81arnAAAAAXRSTlMAQObYZgAAAAFiS0dEAxEMTPIAAAAHdElNRQfiBBMBJCt84jxJAAAAs0lEQVQoz3WQzRnCIAyG6QYGWIDUi96wDgDKCjiLA3jw7AhOahMiP/bxfbjw9mtIotTKBMJOFTQWZlvu0yJ4EUYC6L7ClQqmin1iOpGZTtzW76Mwy3kQ2dyfj1FQpBfpV+SNoGfM/05nGc5thwMWUIk6kEgVcGEIgIbQ7YtWxuKEFdcEt6JFHF6IvLSLiOO75Idf+hpwtV5OpN5NvVpvKeCjBTnAga4vbly3ksjT2zZaosAH+FM+pdDqMH8AAAAldEVYdGRhdGU6Y3JlYXRlADIwMTgtMDQtMTlUMDE6MzY6NDMtMDQ6MDDVfB5eAAAAJXRFWHRkYXRlOm1vZGlmeQAyMDE4LTA0LTE5VDAxOjM2OjQzLTA0OjAwpCGm4gAAAABJRU5ErkJggg==" width="32" height="32" alt="My Computer">
+      <span>My Computer</span>
+    </div>
+
+    <div class="desktop-icon" data-action="info" data-title="Recycle Bin" data-msg="It's empty. You've been a tidy little webmaster.">
+      <img src="data:image/png;base64,iVBORw0KGgoAAAANSUhEUgAAADAAAAAwCAMAAABg3Am1AAAABGdBTUEAALGPC/xhBQAAACBjSFJNAAB6JgAAgIQAAPoAAACA6AAAdTAAAOpgAAA6mAAAF3CculE8AAAARVBMVEUAAACZmZkcHBxmZmZ3d3fAwMApKSmtqZD4+PhfX1/n59YiIiJNTU3MzMxVVVWZzJlmmWYAgADq6uoAZgDX19eGhob///+/sAt4AAAAAXRSTlMAQObYZgAAAAFiS0dEFnzRqBkAAAAHdElNRQfiBhoAMBmckcxBAAAB/ElEQVRIx43U7XaDIAwGYJlF0MrA0t3/rS4fBALqVnbOfmx5fAMGp0ktw2v6bEHl19f8eBgzz/Nn1bhIGPu3qdWwliLcvVHVvbgxxvseLGsTV8ZY63vTi5Mx22YHo7sS04FtMMtZuBbDYDDPs7DSWgWduciAf+0EQgNhC8Us486d9/P3CaAQ02dA+bzuBCa3jUIMCUNPf8AGvjmh20QVYjADJdSv10DqcbGBcgRYP4CYjuNIm+d6iz+wHlzfAmTXcUsxgknRl+eTcAJqQAHxgEJYkJJ8OF6S4FSABhG68bQDFK/DS8I5gM4V6yHihSKDAFASasDegOF6iggsSkLtiBra9bzSCbFIOR81wbWGln7A8XhyBpFx1QQVoEBgUDoKETJ8ewsUcANe7S1DwlsA76ABGj8GdS5S3fM5gDfBLbWE5O1tAB9TPVUWOXoCNWAEcJpdQgPrBQhawCgJcHWKunqZVxQ4SwgSgZuO6i2NIBKNRTqy6gjreyB3KHq6Q/AL3xx1JDu4BpuMYcbREHCu19eaRKJ6q3YwgB+nBVxSHj0VMAAQrn4yIga8sSMVMILphwi/aDis8IYEV6fiAhQin7E3JqgjuqgvRH34/gkYUgJ21ALugEqxDDDg+byvF4KnunLA/tfzFbEE9tPY3RMEH5YXguDTciLrul/9/Re0cDbVjcUAOgAAACV0RVh0ZGF0ZTpjcmVhdGUAMjAxOC0wNi0yNlQwMDo0ODoyNS0wNDowMDNj5BkAAAAldEVYdGRhdGU6bW9kaWZ5ADIwMTgtMDYtMjZUMDA6NDg6MjUtMDQ6MDBCPlylAAAAAElFTkSuQmCC" width="32" height="32" alt="Recycle Bin">
+      <span>Recycle Bin</span>
+    </div>
+
+    <div class="desktop-icon" data-target="win-snake">
+      <svg viewBox="0 0 32 32"><rect x="1" y="1" width="30" height="30" fill="#111" stroke="#000" stroke-width="0.6"/>
+        <rect x="6" y="9" width="5" height="5" fill="#00FFD0"/><rect x="11" y="9" width="5" height="5" fill="#00FFD0"/>
+        <rect x="11" y="14" width="5" height="5" fill="#00FFD0"/><rect x="16" y="14" width="5" height="5" fill="#00FFD0"/>
+        <rect x="16" y="19" width="5" height="5" fill="#00FFD0"/><rect x="21" y="19" width="5" height="5" fill="#FF4D4D"/>
+      </svg>
+      <span>Snake</span>
+    </div>
+
+    <div class="desktop-icon" data-target="win-breakout">
+      <svg viewBox="0 0 32 32"><rect x="1" y="1" width="30" height="30" fill="#111" stroke="#000" stroke-width="0.6"/>
+        <rect x="6" y="6" width="6" height="3" fill="#FF4D4D"/><rect x="13" y="6" width="6" height="3" fill="#FF9F4D"/><rect x="20" y="6" width="6" height="3" fill="#7CFF6B"/>
+        <rect x="6" y="10" width="6" height="3" fill="#4DC9FF"/><rect x="13" y="10" width="6" height="3" fill="#B98BFF"/><rect x="20" y="10" width="6" height="3" fill="#C0C0C0"/>
+        <rect x="15" y="17" width="2" height="1" fill="#00FFD0"/><rect x="14" y="18" width="4" height="2" fill="#00FFD0"/><rect x="15" y="20" width="2" height="1" fill="#00FFD0"/>
+        <rect x="11" y="24" width="10" height="3" fill="#c0c0c0"/>
+      </svg>
+      <span>Breakout</span>
+    </div>
+
+    <div class="desktop-icon" data-target="win-tetris">
+      <svg viewBox="0 0 32 32"><rect x="1" y="1" width="30" height="30" fill="#111" stroke="#000" stroke-width="0.6"/>
+        <rect x="6" y="6" width="6" height="6" fill="#FF4D4D"/>
+        <rect x="12" y="6" width="6" height="6" fill="#FF9F4D"/>
+        <rect x="12" y="12" width="6" height="6" fill="#7CFF6B"/>
+        <rect x="18" y="12" width="6" height="6" fill="#4DC9FF"/>
+        <rect x="6" y="18" width="6" height="6" fill="#B98BFF"/>
+        <rect x="12" y="18" width="6" height="6" fill="#C0C0C0"/>
+      </svg>
+      <span>Tetris</span>
+    </div>
+
+  </div>
+
+  <!-- ============ WINDOWS ============ -->
+
+  <div class="win98" id="win-snake" style="width: 460px; top: 50px; left: 130px;">
+    <div class="win98-titlebar" data-drag>
+      <div class="win98-titlebar-left">
+        <svg viewBox="0 0 32 32"><rect x="6" y="9" width="5" height="5" fill="#00FFD0"/><rect x="11" y="9" width="5" height="5" fill="#00FFD0"/><rect x="11" y="14" width="5" height="5" fill="#00FFD0"/><rect x="16" y="14" width="5" height="5" fill="#00FFD0"/></svg>
+        <span>SNAKE.EXE</span>
+      </div>
+      <div class="win98-titlebar-buttons">
+        <button data-action="min" title="Minimize">_</button>
+        <button data-action="max" title="Maximize">▢</button>
+        <button data-action="close" title="Close">X</button>
+      </div>
+    </div>
+    <div class="win98-body">
+      <div class="win98-body-inner">
+        <iframe id="frame-snake" width="450" height="640" scrolling="no"></iframe>
+      </div>
+    </div>
+  </div>
+
+  <div class="win98" id="win-breakout" style="width: 620px; top: 90px; left: 220px;">
+    <div class="win98-titlebar" data-drag>
+      <div class="win98-titlebar-left">
+        <svg viewBox="0 0 32 32"><rect x="14" y="10" width="4" height="1" fill="#00FFD0"/><rect x="12" y="11" width="8" height="4" fill="#00FFD0"/><rect x="14" y="15" width="4" height="1" fill="#00FFD0"/><rect x="11" y="22" width="10" height="3" fill="#c0c0c0"/></svg>
+        <span>BREAKOUT.EXE</span>
+      </div>
+      <div class="win98-titlebar-buttons">
+        <button data-action="min" title="Minimize">_</button>
+        <button data-action="max" title="Maximize">▢</button>
+        <button data-action="close" title="Close">X</button>
+      </div>
+    </div>
+    <div class="win98-body">
+      <div class="win98-body-inner">
+        <iframe id="frame-breakout" width="612" height="640" scrolling="no"></iframe>
+      </div>
+    </div>
+  </div>
+
+  <div class="win98" id="win-tetris" style="width: 410px; top: 60px; left: 420px;">
+    <div class="win98-titlebar" data-drag>
+      <div class="win98-titlebar-left">
+        <svg viewBox="0 0 32 32"><rect x="6" y="6" width="8" height="8" fill="#FF9F4D"/><rect x="14" y="14" width="8" height="8" fill="#4DC9FF"/></svg>
+        <span>TETRIS.EXE</span>
+      </div>
+      <div class="win98-titlebar-buttons">
+        <button data-action="min" title="Minimize">_</button>
+        <button data-action="max" title="Maximize">▢</button>
+        <button data-action="close" title="Close">X</button>
+      </div>
+    </div>
+    <div class="win98-body">
+      <div class="win98-body-inner">
+        <iframe id="frame-tetris" width="400" height="700" scrolling="no"></iframe>
+      </div>
+    </div>
+  </div>
+
+</div>
+
+<!-- ============ TASKBAR ============ -->
+<div id="taskbar">
+  <button id="startBtn">
+    <img src="data:image/png;base64,iVBORw0KGgoAAAANSUhEUgAAABAAAAAQBAMAAADt3eJSAAAABGdBTUEAALGPC/xhBQAAACBjSFJNAAB6JgAAgIQAAPoAAACA6AAAdTAAAOpgAAA6mAAAF3CculE8AAAAFVBMVEUAAAAAAAD/AAAA/wAAAP///wD///+oQXrmAAAAAXRSTlMAQObYZgAAAAFiS0dEBmFmuH0AAAAHdElNRQfiBhoAOBwkIrLGAAAAWUlEQVQI102Oyw2AQAhE2Q54fu4rHRgbWBMa8GD/rQjrxjgX3gQyg8hfBR2ToGAmdkQVjIPwA2rgxhxQjZSIGQsX0mLl3AHNXxB3TlZ6YD/OQI2W9NlYvg8eYH4JE04wi3cAAAAldEVYdGRhdGU6Y3JlYXRlADIwMTgtMDYtMjZUMDA6NTY6MjgtMDQ6MDCN82qqAAAAJXRFWHRkYXRlOm1vZGlmeQAyMDE4LTA2LTI2VDAwOjU2OjI4LTA0OjAw/K7SFgAAAABJRU5ErkJggg==" width="16" height="16" alt="">
+    Start
+  </button>
+  <div id="taskbarSep"></div>
+  <div id="taskbarApps"></div>
+  <div id="taskbarClock">12:00 PM</div>
+</div>
+
+<!-- ============ START MENU ============ -->
+<div id="startMenu">
+  <div class="start-menu-banner"><span>WINDOWS 98</span></div>
+  <div class="start-menu-items">
+    <div class="start-menu-item" id="programsItem">
+      <img src="data:image/png;base64,iVBORw0KGgoAAAANSUhEUgAAACAAAAAgBAMAAACBVGfHAAAABGdBTUEAALGPC/xhBQAAACBjSFJNAAB6JgAAgIQAAPoAAACA6AAAdTAAAOpgAAA6mAAAF3CculE8AAAAIVBMVEUAAACZmQAICAj4+Pj//5n/+/DMzGYAAAD/zJkzMwD///9AsZvJAAAAAXRSTlMAQObYZgAAAAFiS0dECmjQ9FYAAAAHdElNRQfiBhgXARMJeV+TAAAAuElEQVQoz62QMQ7CQBADLyVlQKLmD/ABpC38AF5AgZSOR7i4kpbf4t3b4xLR4i6+sb1KKb+apf3qe7qY2fU0jIO5BjLdwhjI8dE0Nylx3uiZFS4YjfduAJADLCvCCNrKoAL2JajPyG0IZ9IQGzP1S2iSMdsMZgbshOIVsRsGs7WidzAm1IGaEfgNIugRxIJblXUQ/my1dXgaUaDLZDDm5HgiIvGqQyw7GJVOIO7oPzm1lN17o1f5gz69jIC7vf9PIQAAACV0RVh0ZGF0ZTpjcmVhdGUAMjAxOC0wNi0yNFQyMzowMToxOS0wNDowMO2EXMYAAAAldEVYdGRhdGU6bW9kaWZ5ADIwMTgtMDYtMjRUMjM6MDE6MTktMDQ6MDCc2eR6AAAAAElFTkSuQmCC" width="18" height="18" alt="">
+      <span>Programs</span>
+      <span class="arrow">▶</span>
+      <div id="programsSubmenu">
+        <div class="start-menu-item" data-target="win-snake">
+          <svg viewBox="0 0 20 20"><rect x="3" y="6" width="4" height="4" fill="#00FFD0"/><rect x="7" y="6" width="4" height="4" fill="#00FFD0"/><rect x="7" y="10" width="4" height="4" fill="#00FFD0"/></svg>
+          <span>Snake</span>
+        </div>
+        <div class="start-menu-item" data-target="win-breakout">
+          <svg viewBox="0 0 20 20"><rect x="9" y="5" width="2" height="1" fill="#00FFD0"/><rect x="8" y="6" width="4" height="3" fill="#00FFD0"/><rect x="9" y="9" width="2" height="1" fill="#00FFD0"/><rect x="6" y="14" width="8" height="2" fill="#c0c0c0"/></svg>
+          <span>Breakout</span>
+        </div>
+        <div class="start-menu-item" data-target="win-tetris">
+          <svg viewBox="0 0 20 20"><rect x="3" y="3" width="6" height="6" fill="#FF9F4D"/><rect x="9" y="9" width="6" height="6" fill="#4DC9FF"/></svg>
+          <span>Tetris</span>
+        </div>
+      </div>
+    </div>
+    <div class="start-menu-sep"></div>
+    <div class="start-menu-item" id="shutDownItem">
+      <img src="data:image/png;base64,iVBORw0KGgoAAAANSUhEUgAAABAAAAAQCAYAAAAf8/9hAAAASUlEQVR4nGNgGNTgPxTgU8NEqSUYBuCyFZc4E7oiQjaiq8HqBUZGRkZixHAaQAqg2AAWfJK4nE17FxATGzCA1Ym4DCDGS0MQAADXsygAWRqDPQAAAABJRU5ErkJggg==" width="18" height="18" alt="">
+      <span>Shut Down...</span>
+    </div>
+  </div>
+</div>
+
+<!-- ============ SHUTDOWN SCREEN ============ -->
+<div id="shutdownScreen">
+  <div>It's now safe to turn off your computer.<br><span style="font-size:0.8rem;opacity:0.7;">(or just click anywhere to log back in)</span></div>
+</div>
+
+<div id="dialogRoot"></div>
+
+<!-- ============ SCREENSAVER ============ -->
+<div id="screensaver">
+  <canvas id="screensaverCanvas"></canvas>
+  <div id="screensaverHint">move the mouse or press a key to return to Windows 98</div>
+</div>
+
+  <template id="tpl-snake">
+<style>
+  * { box-sizing: border-box; }
+  body {
+    margin: 0;
+    background: #0a0a12;
+    display: flex;
+    flex-direction: column;
+    align-items: center;
+    font-family: 'Courier New', monospace;
+    color: #fff;
+    padding: 16px 0;
+  }
+  h1 {
+    margin: 0 0 8px;
+    font-size: 1.9rem;
+    letter-spacing: 4px;
+    color: #e0e0e0;
+    text-shadow: 1px 1px 0 #fff, 2px 2px 0 #808080;
+  }
+  #hud {
+    display: flex;
+    gap: 24px;
+    margin-bottom: 10px;
+    font-size: 1rem;
+    letter-spacing: 2px;
+  }
+  #hud span { color: #00FFD0; }
+  #overlay { position: relative; }
+  #gameCanvas {
+    background: #111;
+    border: 6px outset #c0c0c0;
+    display: block;
+  }
+  #message {
+    position: absolute;
+    top: 0;
+    left: 0;
+    width: 100%;
+    height: 100%;
+    display: flex;
+    align-items: center;
+    justify-content: center;
+    background: rgba(0,0,0,0.55);
+  }
+  .dialog {
+    background: #c0c0c0;
+    border: 3px outset #c0c0c0;
+    padding: 18px 26px;
+    text-align: center;
+    min-width: 220px;
+  }
+  .dialog h2 {
+    font-size: 1.3rem;
+    color: #000080;
+    margin: 0 0 8px;
+    letter-spacing: 1px;
+  }
+  .dialog p {
+    margin: 0 0 14px;
+    color: #1a1a1a;
+    font-size: 0.85rem;
+  }
+  #restartBtn {
+    background: #c0c0c0;
+    color: #000;
+    border: 3px outset #c0c0c0;
+    padding: 8px 22px;
+    font-family: 'Courier New', monospace;
+    font-weight: bold;
+    font-size: 0.95rem;
+    letter-spacing: 1px;
+    cursor: pointer;
+  }
+  #restartBtn:active { border-style: inset; }
+  #instructions {
+    margin-top: 10px;
+    color: #888;
+    font-size: 0.8rem;
+    letter-spacing: 1px;
+    text-align: center;
+  }
+</style>
+
+  <h1>SNAKE</h1>
+  <div id="hud">
+    <div>SCORE: <span id="scoreVal">0</span></div>
+    <div>BEST: <span id="bestVal">0</span></div>
+    <div>SPEED: <span id="speedVal">1</span></div>
+  </div>
+
+  <div id="overlay">
+    <canvas id="gameCanvas" width="440" height="440"></canvas>
+    <div id="message">
+      <div class="dialog">
+        <h2 id="messageTitle">SNAKE</h2>
+        <p id="messageSub">Use Arrow Keys or W/A/S/D to move. Eat the red squares, don't hit yourself!</p>
+        <button id="restartBtn">START</button>
+      </div>
+    </div>
+  </div>
+
+  <div id="instructions">Move: Arrow Keys / W A S D &nbsp;|&nbsp; Pause: Space</div>
+
+<script>
+(function() {
+  const canvas = document.getElementById('gameCanvas');
+  const ctx = canvas.getContext('2d');
+  const GRID = 20;
+  const COLS = canvas.width / GRID;
+  const ROWS = canvas.height / GRID;
+
+  const scoreEl = document.getElementById('scoreVal');
+  const bestEl = document.getElementById('bestVal');
+  const speedEl = document.getElementById('speedVal');
+  const messageBox = document.getElementById('message');
+  const messageTitle = document.getElementById('messageTitle');
+  const messageSub = document.getElementById('messageSub');
+  const restartBtn = document.getElementById('restartBtn');
+
+  let snake, dir, nextDir, food, score, best, speedLevel, tickMs, running, paused, timer;
+
+  // ---- beep boop engine ----
+  let audioCtx;
+  function ensureAudio() {
+    if (!audioCtx) audioCtx = new (window.AudioContext || window.webkitAudioContext)();
+    if (audioCtx.state === 'suspended') audioCtx.resume();
+  }
+  function beep(freq, dur, vol) {
+    if (!audioCtx) return;
+    vol = vol === undefined ? 0.18 : vol;
+    const osc = audioCtx.createOscillator();
+    const gain = audioCtx.createGain();
+    osc.type = 'square';
+    osc.frequency.value = freq;
+    gain.gain.value = vol;
+    osc.connect(gain);
+    gain.connect(audioCtx.destination);
+    osc.start();
+    gain.gain.exponentialRampToValueAtTime(0.0001, audioCtx.currentTime + dur);
+    osc.stop(audioCtx.currentTime + dur);
+  }
+  function beepSeq(freqs, dur, gap) {
+    freqs.forEach((f, i) => setTimeout(() => beep(f, dur), i * gap));
+  }
+
+  function loadBest() {
+    try { return parseInt(localStorageSafeGet('snakeBest') || '0', 10) || 0; }
+    catch (e) { return 0; }
+  }
+  function saveBest(val) { try { localStorageSafeSet('snakeBest', String(val)); } catch (e) {} }
+  function localStorageSafeGet(key) { try { return window.localStorage.getItem(key); } catch (e) { return null; } }
+  function localStorageSafeSet(key, val) { try { window.localStorage.setItem(key, val); } catch (e) {} }
+
+  best = loadBest();
+
+  function randomFood() {
+    let pos;
+    do {
+      pos = { x: Math.floor(Math.random() * COLS), y: Math.floor(Math.random() * ROWS) };
+    } while (snake.some(s => s.x === pos.x && s.y === pos.y));
+    return pos;
+  }
+
+  function resetGame() {
+    const startX = Math.floor(COLS / 2);
+    const startY = Math.floor(ROWS / 2);
+    snake = [
+      { x: startX, y: startY },
+      { x: startX - 1, y: startY },
+      { x: startX - 2, y: startY }
+    ];
+    dir = { x: 1, y: 0 };
+    nextDir = { x: 1, y: 0 };
+    food = randomFood();
+    score = 0;
+    speedLevel = 1;
+    tickMs = 140;
+    updateHUD();
+  }
+
+  function updateHUD() {
+    scoreEl.textContent = score;
+    bestEl.textContent = best;
+    speedEl.textContent = speedLevel;
+  }
+
+  function showMessage(title, sub, btnText) {
+    messageTitle.textContent = title;
+    messageSub.textContent = sub;
+    restartBtn.textContent = btnText;
+    messageBox.style.display = 'flex';
+  }
+  function hideMessage() { messageBox.style.display = 'none'; }
+
+  function draw() {
+    ctx.fillStyle = '#111';
+    ctx.fillRect(0, 0, canvas.width, canvas.height);
+
+    ctx.strokeStyle = 'rgba(255,255,255,0.04)';
+    for (let x = 0; x <= COLS; x++) {
+      ctx.beginPath(); ctx.moveTo(x * GRID, 0); ctx.lineTo(x * GRID, canvas.height); ctx.stroke();
+    }
+    for (let y = 0; y <= ROWS; y++) {
+      ctx.beginPath(); ctx.moveTo(0, y * GRID); ctx.lineTo(canvas.width, y * GRID); ctx.stroke();
+    }
+
+    ctx.fillStyle = '#FF4D4D';
+    ctx.fillRect(food.x * GRID + 2, food.y * GRID + 2, GRID - 4, GRID - 4);
+
+    snake.forEach((seg, i) => {
+      const t = i / snake.length;
+      ctx.fillStyle = i === 0 ? '#00FFD0' : 'rgba(0, 255, 208,' + (1 - t * 0.6) + ')';
+      ctx.fillRect(seg.x * GRID + 1, seg.y * GRID + 1, GRID - 2, GRID - 2);
+    });
+  }
+
+  function step() {
+    dir = nextDir;
+    const head = { x: snake[0].x + dir.x, y: snake[0].y + dir.y };
+
+    if (head.x < 0 || head.x >= COLS || head.y < 0 || head.y >= ROWS) return gameOver();
+    if (snake.some(s => s.x === head.x && s.y === head.y)) return gameOver();
+
+    snake.unshift(head);
+
+    if (head.x === food.x && head.y === food.y) {
+      score += 10;
+      beep(880, 0.07);
+      if (score > best) { best = score; saveBest(best); }
+      if (score % 50 === 0) {
+        speedLevel++;
+        tickMs = Math.max(60, tickMs - 12);
+        restartTimer();
+      }
+      food = randomFood();
+      updateHUD();
+    } else {
+      snake.pop();
+    }
+    draw();
+  }
+
+  function restartTimer() {
+    if (timer) clearInterval(timer);
+    timer = setInterval(() => { if (running && !paused) step(); }, tickMs);
+  }
+
+  function gameOver() {
+    beep(140, 0.35);
+    running = false;
+    if (timer) clearInterval(timer);
+    showMessage("GAME OVER", "Score: " + score + "  |  Best: " + best, "TRY AGAIN");
+  }
+
+  function startGame() {
+    ensureAudio();
+    resetGame();
+    hideMessage();
+    running = true;
+    paused = false;
+    draw();
+    restartTimer();
+  }
+
+  restartBtn.onclick = startGame;
+
+  function setDir(x, y) {
+    if (snake.length > 1 && dir.x === -x && dir.y === -y) return;
+    nextDir = { x, y };
+  }
+
+  document.addEventListener('keydown', (e) => {
+    const k = e.key.toLowerCase();
+    if (k === 'arrowup' || k === 'w') setDir(0, -1);
+    else if (k === 'arrowdown' || k === 's') setDir(0, 1);
+    else if (k === 'arrowleft' || k === 'a') setDir(-1, 0);
+    else if (k === 'arrowright' || k === 'd') setDir(1, 0);
+    else if (k === ' ' && running) {
+      paused = !paused;
+      if (paused) {
+        showMessage("PAUSED", "Press Space to continue", "RESUME");
+        restartBtn.onclick = () => {
+          paused = false;
+          hideMessage();
+          restartBtn.onclick = startGame;
+        };
+      }
+    }
+  });
+
+  resetGame();
+  draw();
+})();
+</script>
+  </template>
+
+  <template id="tpl-breakout">
+<style>
+  * { box-sizing: border-box; }
+  body {
+    margin: 0;
+    background: #0a0a12;
+    display: flex;
+    flex-direction: column;
+    align-items: center;
+    font-family: 'Courier New', monospace;
+    color: #fff;
+    padding: 16px 0;
+  }
+  h1 {
+    margin: 0 0 8px;
+    font-size: 1.9rem;
+    letter-spacing: 4px;
+    color: #e0e0e0;
+    text-shadow: 1px 1px 0 #fff, 2px 2px 0 #808080;
+  }
+  #hud {
+    display: flex;
+    gap: 24px;
+    margin-bottom: 10px;
+    font-size: 1rem;
+    letter-spacing: 2px;
+  }
+  #hud span { color: #00FFD0; }
+  #gameCanvas {
+    background: #111;
+    border: 6px outset #c0c0c0;
+    display: block;
+  }
+  #overlay { position: relative; }
+  #message {
+    position: absolute;
+    top: 0;
+    left: 0;
+    width: 100%;
+    height: 100%;
+    display: flex;
+    align-items: center;
+    justify-content: center;
+    background: rgba(0,0,0,0.55);
+  }
+  .dialog {
+    background: #c0c0c0;
+    border: 3px outset #c0c0c0;
+    padding: 18px 26px;
+    text-align: center;
+    min-width: 220px;
+  }
+  .dialog h2 {
+    font-size: 1.3rem;
+    color: #000080;
+    margin: 0 0 8px;
+    letter-spacing: 1px;
+  }
+  .dialog p {
+    margin: 0 0 14px;
+    color: #1a1a1a;
+    font-size: 0.85rem;
+  }
+  #restartBtn {
+    background: #c0c0c0;
+    color: #000;
+    border: 3px outset #c0c0c0;
+    padding: 8px 22px;
+    font-family: 'Courier New', monospace;
+    font-weight: bold;
+    font-size: 0.95rem;
+    letter-spacing: 1px;
+    cursor: pointer;
+  }
+  #restartBtn:active { border-style: inset; }
+  #instructions {
+    margin-top: 10px;
+    color: #888;
+    font-size: 0.8rem;
+    letter-spacing: 1px;
+    text-align: center;
+  }
+</style>
+
+  <h1>BREAKOUT</h1>
+  <div id="hud">
+    <div>SCORE: <span id="scoreVal">0</span></div>
+    <div>LIVES: <span id="livesVal">3</span></div>
+    <div>LEVEL: <span id="levelVal">1</span></div>
+  </div>
+
+  <div id="overlay">
+    <canvas id="gameCanvas" width="600" height="440"></canvas>
+    <div id="message">
+      <div class="dialog">
+        <h2 id="messageTitle">BREAKOUT</h2>
+        <p id="messageSub">Use Arrow Keys, A/D, or your mouse to move the paddle.</p>
+        <button id="restartBtn">START</button>
+      </div>
+    </div>
+  </div>
+
+  <div id="instructions">Move: ← → / A D / Mouse &nbsp;|&nbsp; Pause: Space</div>
+
+<script>
+(function() {
+  const canvas = document.getElementById('gameCanvas');
+  const ctx = canvas.getContext('2d');
+  const W = canvas.width, H = canvas.height;
+
+  const scoreEl = document.getElementById('scoreVal');
+  const livesEl = document.getElementById('livesVal');
+  const levelEl = document.getElementById('levelVal');
+  const messageBox = document.getElementById('message');
+  const messageTitle = document.getElementById('messageTitle');
+  const messageSub = document.getElementById('messageSub');
+  const restartBtn = document.getElementById('restartBtn');
+
+  const COLORS = ['#FF4D4D', '#FF9F4D', '#C0C0C0', '#7CFF6B', '#4DC9FF', '#B98BFF'];
+
+  let score = 0, lives = 3, level = 1;
+  let paddle, ball, bricks, rows, cols;
+  let running = false, paused = false;
+  let rightPressed = false, leftPressed = false;
+
+  // ---- beep boop engine ----
+  let audioCtx;
+  function ensureAudio() {
+    if (!audioCtx) audioCtx = new (window.AudioContext || window.webkitAudioContext)();
+    if (audioCtx.state === 'suspended') audioCtx.resume();
+  }
+  function beep(freq, dur, vol) {
+    if (!audioCtx) return;
+    vol = vol === undefined ? 0.18 : vol;
+    const osc = audioCtx.createOscillator();
+    const gain = audioCtx.createGain();
+    osc.type = 'square';
+    osc.frequency.value = freq;
+    gain.gain.value = vol;
+    osc.connect(gain);
+    gain.connect(audioCtx.destination);
+    osc.start();
+    gain.gain.exponentialRampToValueAtTime(0.0001, audioCtx.currentTime + dur);
+    osc.stop(audioCtx.currentTime + dur);
+  }
+  function beepSeq(freqs, dur, gap) {
+    freqs.forEach((f, i) => setTimeout(() => beep(f, dur), i * gap));
+  }
+
+  function initLevelDims() {
+    rows = 4 + Math.min(level - 1, 4);
+    cols = 8;
+  }
+
+  function makePaddle() {
+    return { w: 100, h: 14, x: W / 2 - 50, y: H - 30, speed: 7 };
+  }
+
+  function makeBall() {
+    const speed = 4.2 + (level - 1) * 0.4;
+    return { x: W / 2, y: H - 50, r: 8, dx: speed * (Math.random() < 0.5 ? -1 : 1), dy: -speed };
+  }
+
+  function makeBricks() {
+    const bricksArr = [];
+    const padding = 6, offsetTop = 50, offsetLeft = 20;
+    const brickW = (W - offsetLeft * 2 - padding * (cols - 1)) / cols;
+    const brickH = 20;
+    for (let r = 0; r < rows; r++) {
+      for (let c = 0; c < cols; c++) {
+        bricksArr.push({
+          x: offsetLeft + c * (brickW + padding),
+          y: offsetTop + r * (brickH + padding),
+          w: brickW, h: brickH, alive: true,
+          color: COLORS[r % COLORS.length],
+          points: (rows - r) * 10
+        });
+      }
+    }
+    return bricksArr;
+  }
+
+  function resetEntities() {
+    initLevelDims();
+    paddle = makePaddle();
+    ball = makeBall();
+    bricks = makeBricks();
+  }
+
+  function updateHUD() {
+    scoreEl.textContent = score;
+    livesEl.textContent = lives;
+    levelEl.textContent = level;
+  }
+
+  function showMessage(title, sub, btnText) {
+    messageTitle.textContent = title;
+    messageSub.textContent = sub;
+    restartBtn.textContent = btnText;
+    messageBox.style.display = 'flex';
+  }
+  function hideMessage() { messageBox.style.display = 'none'; }
+
+  function drawPaddle() {
+    ctx.fillStyle = '#c0c0c0';
+    ctx.fillRect(paddle.x, paddle.y, paddle.w, paddle.h);
+  }
+
+  function drawBall() {
+    ctx.beginPath();
+    ctx.arc(ball.x, ball.y, ball.r, 0, Math.PI * 2);
+    ctx.fillStyle = '#00FFD0';
+    ctx.fill();
+    ctx.closePath();
+  }
+
+  function drawBricks() {
+    bricks.forEach(b => {
+      if (!b.alive) return;
+      ctx.fillStyle = b.color;
+      ctx.fillRect(b.x, b.y, b.w, b.h);
+      ctx.strokeStyle = 'rgba(0,0,0,0.4)';
+      ctx.strokeRect(b.x, b.y, b.w, b.h);
+    });
+  }
+
+  function clear() { ctx.clearRect(0, 0, W, H); }
+
+  function movePaddle() {
+    if (rightPressed) paddle.x += paddle.speed;
+    if (leftPressed) paddle.x -= paddle.speed;
+    paddle.x = Math.max(0, Math.min(W - paddle.w, paddle.x));
+  }
+
+  function moveBall() {
+    ball.x += ball.dx;
+    ball.y += ball.dy;
+
+    if (ball.x - ball.r < 0) { ball.x = ball.r; ball.dx *= -1; }
+    if (ball.x + ball.r > W) { ball.x = W - ball.r; ball.dx *= -1; }
+    if (ball.y - ball.r < 0) { ball.y = ball.r; ball.dy *= -1; }
+
+    if (ball.y + ball.r >= paddle.y &&
+        ball.y + ball.r <= paddle.y + paddle.h + 6 &&
+        ball.x >= paddle.x && ball.x <= paddle.x + paddle.w &&
+        ball.dy > 0) {
+      const hitPos = (ball.x - paddle.x) / paddle.w;
+      const angle = (hitPos - 0.5) * Math.PI * 0.7;
+      const speed = Math.hypot(ball.dx, ball.dy);
+      ball.dx = speed * Math.sin(angle);
+      ball.dy = -Math.abs(speed * Math.cos(angle));
+      ball.y = paddle.y - ball.r;
+      beep(220, 0.05);
+    }
+
+    for (const b of bricks) {
+      if (!b.alive) continue;
+      if (ball.x + ball.r > b.x && ball.x - ball.r < b.x + b.w &&
+          ball.y + ball.r > b.y && ball.y - ball.r < b.y + b.h) {
+        b.alive = false;
+        score += b.points;
+        beep(300 + b.points * 5, 0.06);
+        updateHUD();
+
+        const overlapLeft = (ball.x + ball.r) - b.x;
+        const overlapRight = (b.x + b.w) - (ball.x - ball.r);
+        const overlapTop = (ball.y + ball.r) - b.y;
+        const overlapBottom = (b.y + b.h) - (ball.y - ball.r);
+        const minOverlap = Math.min(overlapLeft, overlapRight, overlapTop, overlapBottom);
+        if (minOverlap === overlapTop || minOverlap === overlapBottom) ball.dy *= -1;
+        else ball.dx *= -1;
+        break;
+      }
+    }
+
+    if (ball.y - ball.r > H) {
+      lives--;
+      beep(130, 0.3);
+      updateHUD();
+      if (lives <= 0) { endGame(false); return; }
+      else { ball = makeBall(); paddle = makePaddle(); }
+    }
+
+    if (bricks.every(b => !b.alive)) {
+      level++;
+      updateHUD();
+      resetEntities();
+      pauseBriefly("LEVEL " + level, "Get ready...");
+    }
+  }
+
+  function pauseBriefly(title, sub) {
+    beepSeq([440, 660], 0.1, 100);
+    paused = true;
+    showMessage(title, sub, "CONTINUE");
+    restartBtn.onclick = () => {
+      hideMessage();
+      paused = false;
+      restartBtn.onclick = restartGame;
+      loop();
+    };
+  }
+
+  function endGame(won) {
+    if (won) beepSeq([440, 554, 659, 880], 0.12, 90);
+    else beep(140, 0.4);
+    running = false;
+    if (won) showMessage("YOU WIN!", "Final score: " + score, "PLAY AGAIN");
+    else showMessage("GAME OVER", "Final score: " + score, "TRY AGAIN");
+    restartBtn.onclick = restartGame;
+  }
+
+  function loop() {
+    if (!running || paused) return;
+    clear();
+    movePaddle();
+    moveBall();
+    drawBricks();
+    drawPaddle();
+    drawBall();
+    requestAnimationFrame(loop);
+  }
+
+  function restartGame() {
+    ensureAudio();
+    score = 0; lives = 3; level = 1;
+    updateHUD();
+    resetEntities();
+    hideMessage();
+    running = true;
+    paused = false;
+    requestAnimationFrame(loop);
+  }
+
+  restartBtn.onclick = restartGame;
+
+  document.addEventListener('keydown', (e) => {
+    if (e.key === 'ArrowRight' || e.key === 'd' || e.key === 'D') rightPressed = true;
+    if (e.key === 'ArrowLeft' || e.key === 'a' || e.key === 'A') leftPressed = true;
+    if (e.key === ' ' && running) {
+      paused = !paused;
+      if (!paused) loop();
+      else {
+        showMessage("PAUSED", "Press Space or click to continue", "CONTINUE");
+        restartBtn.onclick = () => {
+          hideMessage();
+          paused = false;
+          restartBtn.onclick = restartGame;
+          loop();
+        };
+      }
+    }
+  });
+  document.addEventListener('keyup', (e) => {
+    if (e.key === 'ArrowRight' || e.key === 'd' || e.key === 'D') rightPressed = false;
+    if (e.key === 'ArrowLeft' || e.key === 'a' || e.key === 'A') leftPressed = false;
+  });
+
+  canvas.addEventListener('mousemove', (e) => {
+    if (!running || paused) return;
+    const rect = canvas.getBoundingClientRect();
+    const mouseX = (e.clientX - rect.left) * (W / rect.width);
+    paddle.x = Math.max(0, Math.min(W - paddle.w, mouseX - paddle.w / 2));
+  });
+
+  level = 1; lives = 3; score = 0;
+  resetEntities();
+  updateHUD();
+  drawBricks();
+  drawPaddle();
+  drawBall();
+})();
+</script>
+  </template>
+
+  <template id="tpl-tetris">
+<style>
+  * { box-sizing: border-box; }
+  body {
+    margin: 0;
+    background: #0a0a12;
+    display: flex;
+    flex-direction: column;
+    align-items: center;
+    font-family: 'Courier New', monospace;
+    color: #fff;
+    padding: 16px 0;
+  }
+  h1 {
+    margin: 0 0 8px;
+    font-size: 1.9rem;
+    letter-spacing: 4px;
+    color: #e0e0e0;
+    text-shadow: 1px 1px 0 #fff, 2px 2px 0 #808080;
+  }
+  #hud {
+    display: flex;
+    gap: 18px;
+    margin-bottom: 10px;
+    font-size: 0.95rem;
+    letter-spacing: 1px;
+  }
+  #hud span { color: #00FFD0; }
+  #overlay {
+    position: relative;
+    display: flex;
+    gap: 12px;
+    align-items: flex-start;
+  }
+  #gameCanvas {
+    background: #111;
+    border: 6px outset #c0c0c0;
+    display: block;
+  }
+  #sidePanel {
+    width: 96px;
+  }
+  .panel-box {
+    background: #c0c0c0;
+    border: 3px outset #c0c0c0;
+    padding: 4px;
+    margin-bottom: 8px;
+  }
+  .panel-box-label {
+    color: #000080;
+    font-size: 0.7rem;
+    font-weight: bold;
+    letter-spacing: 1px;
+    text-align: center;
+    margin-bottom: 4px;
+  }
+  #nextCanvas {
+    background: #111;
+    border: 2px inset #c0c0c0;
+    display: block;
+    width: 100%;
+  }
+  #message {
+    position: absolute;
+    top: 0;
+    left: 0;
+    width: 100%;
+    height: 100%;
+    display: flex;
+    align-items: center;
+    justify-content: center;
+    background: rgba(0,0,0,0.55);
+  }
+  .dialog {
+    background: #c0c0c0;
+    border: 3px outset #c0c0c0;
+    padding: 18px 22px;
+    text-align: center;
+    min-width: 200px;
+  }
+  .dialog h2 {
+    font-size: 1.2rem;
+    color: #000080;
+    margin: 0 0 8px;
+    letter-spacing: 1px;
+  }
+  .dialog p {
+    margin: 0 0 14px;
+    color: #1a1a1a;
+    font-size: 0.8rem;
+  }
+  #restartBtn {
+    background: #c0c0c0;
+    color: #000;
+    border: 3px outset #c0c0c0;
+    padding: 8px 20px;
+    font-family: 'Courier New', monospace;
+    font-weight: bold;
+    font-size: 0.9rem;
+    letter-spacing: 1px;
+    cursor: pointer;
+  }
+  #restartBtn:active { border-style: inset; }
+  #instructions {
+    margin-top: 10px;
+    color: #888;
+    font-size: 0.75rem;
+    letter-spacing: 1px;
+    text-align: center;
+    max-width: 320px;
+  }
+</style>
+
+  <h1>TETRIS</h1>
+  <div id="hud">
+    <div>SCORE: <span id="scoreVal">0</span></div>
+    <div>LINES: <span id="linesVal">0</span></div>
+    <div>LEVEL: <span id="levelVal">1</span></div>
+  </div>
+
+  <div id="overlay">
+    <canvas id="gameCanvas" width="240" height="480"></canvas>
+    <div id="sidePanel">
+      <div class="panel-box">
+        <div class="panel-box-label">NEXT</div>
+        <canvas id="nextCanvas" width="80" height="80"></canvas>
+      </div>
+    </div>
+    <div id="message">
+      <div class="dialog">
+        <h2 id="messageTitle">TETRIS</h2>
+        <p id="messageSub">Arrange the falling blocks, clear lines!</p>
+        <button id="restartBtn">START</button>
+      </div>
+    </div>
+  </div>
+
+  <div id="instructions">Move: ← → / A D &nbsp;|&nbsp; Rotate: ↑ / W &nbsp;|&nbsp; Soft Drop: ↓ / S &nbsp;|&nbsp; Hard Drop: Space &nbsp;|&nbsp; Pause: P</div>
+
+<script>
+(function() {
+  const COLS = 10, ROWS = 20, BLOCK = 24;
+  const canvas = document.getElementById('gameCanvas');
+  const ctx = canvas.getContext('2d');
+  const nextCanvas = document.getElementById('nextCanvas');
+  const nctx = nextCanvas.getContext('2d');
+
+  const scoreEl = document.getElementById('scoreVal');
+  const linesEl = document.getElementById('linesVal');
+  const levelEl = document.getElementById('levelVal');
+  const messageBox = document.getElementById('message');
+  const messageTitle = document.getElementById('messageTitle');
+  const messageSub = document.getElementById('messageSub');
+  const restartBtn = document.getElementById('restartBtn');
+
+  // ---- beep boop engine ----
+  let audioCtx;
+  function ensureAudio() {
+    if (!audioCtx) audioCtx = new (window.AudioContext || window.webkitAudioContext)();
+    if (audioCtx.state === 'suspended') audioCtx.resume();
+  }
+  function beep(freq, dur, vol) {
+    if (!audioCtx) return;
+    vol = vol === undefined ? 0.18 : vol;
+    const osc = audioCtx.createOscillator();
+    const gain = audioCtx.createGain();
+    osc.type = 'square';
+    osc.frequency.value = freq;
+    gain.gain.value = vol;
+    osc.connect(gain);
+    gain.connect(audioCtx.destination);
+    osc.start();
+    gain.gain.exponentialRampToValueAtTime(0.0001, audioCtx.currentTime + dur);
+    osc.stop(audioCtx.currentTime + dur);
+  }
+  function beepSeq(freqs, dur, gap) {
+    freqs.forEach((f, i) => setTimeout(() => beep(f, dur), i * gap));
+  }
+
+  const SHAPES = {
+    I: [[0,0,0,0],[1,1,1,1],[0,0,0,0],[0,0,0,0]],
+    O: [[0,0,0,0],[0,1,1,0],[0,1,1,0],[0,0,0,0]],
+    T: [[0,0,0,0],[0,1,0,0],[1,1,1,0],[0,0,0,0]],
+    S: [[0,0,0,0],[0,1,1,0],[1,1,0,0],[0,0,0,0]],
+    Z: [[0,0,0,0],[1,1,0,0],[0,1,1,0],[0,0,0,0]],
+    J: [[0,0,0,0],[1,0,0,0],[1,1,1,0],[0,0,0,0]],
+    L: [[0,0,0,0],[0,0,1,0],[1,1,1,0],[0,0,0,0]]
+  };
+  const COLORS = {
+    I: '#4DC9FF', O: '#C0C0C0', T: '#B98BFF',
+    S: '#7CFF6B', Z: '#FF4D4D', J: '#6699FF', L: '#FF9F4D'
+  };
+  const TYPES = Object.keys(SHAPES);
+  const LINE_SCORES = [0, 40, 100, 300, 1200];
+
+  let board, current, next, px, py, score, lines, level, tickMs, timer, running, paused;
+
+  function emptyBoard() {
+    const b = [];
+    for (let r = 0; r < ROWS; r++) b.push(new Array(COLS).fill(null));
+    return b;
+  }
+
+  function randomType() { return TYPES[Math.floor(Math.random() * TYPES.length)]; }
+
+  function rotateMatrix(m) {
+    const N = m.length;
+    const result = [];
+    for (let i = 0; i < N; i++) {
+      result.push([]);
+      for (let j = 0; j < N; j++) result[i][j] = m[N - j - 1][i];
+    }
+    return result;
+  }
+
+  function spawnPiece() {
+    const type = next || randomType();
+    next = randomType();
+    current = { type: type, shape: SHAPES[type].map(r => r.slice()) };
+    px = 3; py = -1;
+    drawNext();
+    if (collide(current.shape, px, py)) {
+      gameOver();
+    }
+  }
+
+  function collide(shape, ox, oy) {
+    for (let r = 0; r < 4; r++) {
+      for (let c = 0; c < 4; c++) {
+        if (!shape[r][c]) continue;
+        const boardRow = oy + r;
+        const boardCol = ox + c;
+        if (boardCol < 0 || boardCol >= COLS || boardRow >= ROWS) return true;
+        if (boardRow >= 0 && board[boardRow][boardCol]) return true;
+      }
+    }
+    return false;
+  }
+
+  function merge() {
+    for (let r = 0; r < 4; r++) {
+      for (let c = 0; c < 4; c++) {
+        if (!current.shape[r][c]) continue;
+        const boardRow = py + r;
+        const boardCol = px + c;
+        if (boardRow >= 0) board[boardRow][boardCol] = current.type;
+      }
+    }
+  }
+
+  function clearLines() {
+    let cleared = 0;
+    for (let r = ROWS - 1; r >= 0; r--) {
+      if (board[r].every(cell => cell !== null)) {
+        board.splice(r, 1);
+        board.unshift(new Array(COLS).fill(null));
+        cleared++;
+        r++;
+      }
+    }
+    if (cleared > 0) {
+      score += LINE_SCORES[cleared] * level;
+      lines += cleared;
+      const newLevel = Math.floor(lines / 10) + 1;
+      if (newLevel > level) {
+        level = newLevel;
+        tickMs = Math.max(120, 600 - (level - 1) * 50);
+        restartTimer();
+        beepSeq([440, 660], 0.1, 100);
+      }
+      if (cleared >= 4) beepSeq([523, 659, 784, 1046], 0.1, 80);
+      else beepSeq(new Array(cleared).fill(0).map((_, i) => 500 + i * 120), 0.08, 70);
+      updateHUD();
+    }
+  }
+
+  function updateHUD() {
+    scoreEl.textContent = score;
+    linesEl.textContent = lines;
+    levelEl.textContent = level;
+  }
+
+  function showMessage(title, sub, btnText) {
+    messageTitle.textContent = title;
+    messageSub.textContent = sub;
+    restartBtn.textContent = btnText;
+    messageBox.style.display = 'flex';
+  }
+  function hideMessage() { messageBox.style.display = 'none'; }
+
+  function drawCell(c2d, x, y, color) {
+    c2d.fillStyle = color;
+    c2d.fillRect(x + 1, y + 1, BLOCK - 2, BLOCK - 2);
+    c2d.strokeStyle = 'rgba(0,0,0,0.4)';
+    c2d.strokeRect(x + 1, y + 1, BLOCK - 2, BLOCK - 2);
+  }
+
+  function draw() {
+    ctx.fillStyle = '#111';
+    ctx.fillRect(0, 0, canvas.width, canvas.height);
+
+    ctx.strokeStyle = 'rgba(255,255,255,0.04)';
+    for (let x = 0; x <= COLS; x++) {
+      ctx.beginPath(); ctx.moveTo(x * BLOCK, 0); ctx.lineTo(x * BLOCK, canvas.height); ctx.stroke();
+    }
+    for (let y = 0; y <= ROWS; y++) {
+      ctx.beginPath(); ctx.moveTo(0, y * BLOCK); ctx.lineTo(canvas.width, y * BLOCK); ctx.stroke();
+    }
+
+    for (let r = 0; r < ROWS; r++) {
+      for (let c = 0; c < COLS; c++) {
+        if (board[r][c]) drawCell(ctx, c * BLOCK, r * BLOCK, COLORS[board[r][c]]);
+      }
+    }
+
+    if (current) {
+      for (let r = 0; r < 4; r++) {
+        for (let c = 0; c < 4; c++) {
+          if (!current.shape[r][c]) continue;
+          const boardRow = py + r, boardCol = px + c;
+          if (boardRow >= 0) drawCell(ctx, boardCol * BLOCK, boardRow * BLOCK, COLORS[current.type]);
+        }
+      }
+    }
+  }
+
+  function drawNext() {
+    nctx.fillStyle = '#111';
+    nctx.fillRect(0, 0, nextCanvas.width, nextCanvas.height);
+    const shape = SHAPES[next];
+    const size = 18;
+    const offX = (nextCanvas.width - 4 * size) / 2;
+    const offY = (nextCanvas.height - 4 * size) / 2;
+    for (let r = 0; r < 4; r++) {
+      for (let c = 0; c < 4; c++) {
+        if (!shape[r][c]) continue;
+        nctx.fillStyle = COLORS[next];
+        nctx.fillRect(offX + c * size + 1, offY + r * size + 1, size - 2, size - 2);
+      }
+    }
+  }
+
+  function tryMove(dx, dy) {
+    if (!collide(current.shape, px + dx, py + dy)) {
+      px += dx; py += dy;
+      return true;
+    }
+    return false;
+  }
+
+  function tryRotate() {
+    const rotated = rotateMatrix(current.shape);
+    if (!collide(rotated, px, py)) {
+      current.shape = rotated;
+      beep(350, 0.04);
+    }
+  }
+
+  function hardDrop() {
+    let dropped = 0;
+    while (tryMove(0, 1)) dropped++;
+    lockPiece();
+  }
+
+  function lockPiece() {
+    merge();
+    beep(180, 0.05);
+    clearLines();
+    spawnPiece();
+    draw();
+  }
+
+  function tick() {
+    if (!running || paused) return;
+    if (!tryMove(0, 1)) {
+      lockPiece();
+    }
+    draw();
+  }
+
+  function restartTimer() {
+    if (timer) clearInterval(timer);
+    timer = setInterval(tick, tickMs);
+  }
+
+  function gameOver() {
+    running = false;
+    if (timer) clearInterval(timer);
+    beep(140, 0.4);
+    showMessage("GAME OVER", "Score: " + score + "  |  Lines: " + lines, "TRY AGAIN");
+  }
+
+  function startGame() {
+    ensureAudio();
+    board = emptyBoard();
+    score = 0; lines = 0; level = 1; tickMs = 600;
+    next = randomType();
+    spawnPiece();
+    hideMessage();
+    running = true;
+    paused = false;
+    updateHUD();
+    draw();
+    restartTimer();
+  }
+
+  restartBtn.onclick = startGame;
+
+  document.addEventListener('keydown', (e) => {
+    if (!running) return;
+    const k = e.key.toLowerCase();
+    if (k === 'p') {
+      paused = !paused;
+      if (paused) {
+        showMessage("PAUSED", "Press P to continue", "RESUME");
+        restartBtn.onclick = () => {
+          paused = false;
+          hideMessage();
+          restartBtn.onclick = startGame;
+        };
+      }
+      return;
+    }
+    if (paused) return;
+    if (k === 'arrowleft' || k === 'a') { if (tryMove(-1, 0)) draw(); }
+    else if (k === 'arrowright' || k === 'd') { if (tryMove(1, 0)) draw(); }
+    else if (k === 'arrowdown' || k === 's') { if (tryMove(0, 1)) { score++; updateHUD(); draw(); } }
+    else if (k === 'arrowup' || k === 'w') { tryRotate(); draw(); }
+    else if (k === ' ') { e.preventDefault(); hardDrop(); }
+  });
+
+  board = emptyBoard();
+  draw();
+  drawNext();
+})();
+</script>
+  </template>
+
+<script>
+(function() {
+  // pour the embedded game sources into the iframes
+  document.getElementById('frame-snake').srcdoc = document.getElementById('tpl-snake').innerHTML;
+  document.getElementById('frame-breakout').srcdoc = document.getElementById('tpl-breakout').innerHTML;
+  document.getElementById('frame-tetris').srcdoc = document.getElementById('tpl-tetris').innerHTML;
+
+  const desktop = document.getElementById('desktop');
+  const taskbarApps = document.getElementById('taskbarApps');
+  const startBtn = document.getElementById('startBtn');
+  const startMenu = document.getElementById('startMenu');
+  const programsItem = document.getElementById('programsItem');
+  const programsSubmenu = document.getElementById('programsSubmenu');
+  const shutDownItem = document.getElementById('shutDownItem');
+  const shutdownScreen = document.getElementById('shutdownScreen');
+  const dialogRoot = document.getElementById('dialogRoot');
+
+  const openWindows = {}; // id -> taskbar button element
+  let focusedId = null;
+  let topZ = 10;
+
+  // ---------- window manager ----------
+  function getWin(id) { return document.getElementById(id); }
+
+  function bringToFront(id) {
+    const win = getWin(id);
+    if (!win) return;
+    topZ++;
+    win.style.zIndex = topZ;
+    focusedId = id;
+    updateTaskbarActiveStates();
+  }
+
+  function addTaskbarButton(id) {
+    const win = getWin(id);
+    const titleSpan = win.querySelector('.win98-titlebar-left span');
+    const iconSvg = win.querySelector('.win98-titlebar-left svg');
+    const btn = document.createElement('button');
+    btn.className = 'taskbar-app-btn';
+    btn.innerHTML = (iconSvg ? iconSvg.outerHTML : '') + '<span>' + titleSpan.textContent + '</span>';
+    btn.addEventListener('click', () => {
+      const w = getWin(id);
+      if (w.classList.contains('minimized')) {
+        w.classList.remove('minimized');
+        bringToFront(id);
+      } else if (focusedId === id) {
+        w.classList.add('minimized');
+        focusedId = null;
+        updateTaskbarActiveStates();
+      } else {
+        bringToFront(id);
+      }
+    });
+    taskbarApps.appendChild(btn);
+    openWindows[id] = btn;
+  }
+
+  function removeTaskbarButton(id) {
+    if (openWindows[id]) {
+      openWindows[id].remove();
+      delete openWindows[id];
+    }
+    if (focusedId === id) focusedId = null;
+  }
+
+  function updateTaskbarActiveStates() {
+    Object.keys(openWindows).forEach(id => {
+      openWindows[id].classList.toggle('active', id === focusedId);
+    });
+  }
+
+  function openWindow(id) {
+    const win = getWin(id);
+    if (!win) return;
+    if (!openWindows[id]) addTaskbarButton(id);
+    win.classList.remove('minimized');
+    win.style.display = 'block';
+    bringToFront(id);
+    closeStartMenu();
+  }
+  window.openWindow98 = openWindow;
+
+  function setupWindow(win) {
+    const id = win.id;
+    const titlebar = win.querySelector('[data-drag]');
+    const minBtn = win.querySelector('[data-action="min"]');
+    const maxBtn = win.querySelector('[data-action="max"]');
+    const closeBtn = win.querySelector('[data-action="close"]');
+    let savedStyle = null;
+
+    win.addEventListener('mousedown', () => bringToFront(id));
+
+    let dragging = false, offX = 0, offY = 0;
+    titlebar.addEventListener('mousedown', (e) => {
+      if (win.classList.contains('maximized')) return;
+      dragging = true;
+      const rect = win.getBoundingClientRect();
+      offX = e.clientX - rect.left;
+      offY = e.clientY - rect.top;
+      e.preventDefault();
+    });
+    document.addEventListener('mousemove', (e) => {
+      if (!dragging) return;
+      win.style.left = Math.max(0, e.clientX - offX) + 'px';
+      win.style.top = Math.max(0, e.clientY - offY) + 'px';
+    });
+    document.addEventListener('mouseup', () => { dragging = false; });
+
+    minBtn.addEventListener('click', () => {
+      win.classList.add('minimized');
+      if (focusedId === id) focusedId = null;
+      updateTaskbarActiveStates();
+    });
+
+    maxBtn.addEventListener('click', () => {
+      if (!win.classList.contains('maximized')) {
+        savedStyle = { top: win.style.top, left: win.style.left, width: win.style.width };
+        win.classList.add('maximized');
+      } else {
+        win.classList.remove('maximized');
+        if (savedStyle) {
+          win.style.top = savedStyle.top;
+          win.style.left = savedStyle.left;
+          win.style.width = savedStyle.width;
+        }
+      }
+    });
+
+    closeBtn.addEventListener('click', () => {
+      win.style.display = 'none';
+      win.classList.remove('minimized', 'maximized');
+      removeTaskbarButton(id);
+    });
+  }
+
+  document.querySelectorAll('.win98').forEach(setupWindow);
+
+  // ---------- desktop icons ----------
+  document.querySelectorAll('.desktop-icon').forEach(icon => {
+    icon.addEventListener('click', (e) => {
+      e.stopPropagation();
+      document.querySelectorAll('.desktop-icon').forEach(i => i.classList.remove('selected'));
+      icon.classList.add('selected');
+    });
+    icon.addEventListener('dblclick', (e) => {
+      e.stopPropagation();
+      const target = icon.getAttribute('data-target');
+      if (target) {
+        openWindow(target);
+      } else if (icon.getAttribute('data-action') === 'info') {
+        showInfoDialog(icon.getAttribute('data-title'), icon.getAttribute('data-msg'));
+      }
+    });
+  });
+
+  desktop.addEventListener('mousedown', (e) => {
+    if (e.target === desktop) {
+      document.querySelectorAll('.desktop-icon').forEach(i => i.classList.remove('selected'));
+    }
+  });
+
+  // ---------- start menu ----------
+  function closeStartMenu() {
+    startMenu.classList.remove('open');
+    startBtn.classList.remove('active');
+    programsSubmenu.classList.remove('open');
+  }
+  function toggleStartMenu() {
+    const willOpen = !startMenu.classList.contains('open');
+    closeStartMenu();
+    if (willOpen) {
+      startMenu.classList.add('open');
+      startBtn.classList.add('active');
+    }
+  }
+  startBtn.addEventListener('click', (e) => { e.stopPropagation(); toggleStartMenu(); });
+  startMenu.addEventListener('mousedown', (e) => e.stopPropagation());
+
+  programsItem.addEventListener('click', (e) => {
+    e.stopPropagation();
+    programsSubmenu.classList.toggle('open');
+  });
+
+  programsSubmenu.querySelectorAll('.start-menu-item').forEach(item => {
+    item.addEventListener('click', (e) => {
+      e.stopPropagation();
+      openWindow(item.getAttribute('data-target'));
+    });
+  });
+
+  document.addEventListener('mousedown', (e) => {
+    if (!startMenu.contains(e.target) && e.target !== startBtn && !startBtn.contains(e.target)) {
+      closeStartMenu();
+    }
+  });
+
+  // ---------- shut down ----------
+  shutDownItem.addEventListener('click', (e) => {
+    e.stopPropagation();
+    closeStartMenu();
+    showConfirmDialog(
+      'Shut Down Windows',
+      'Are you sure you want to shut down your computer?',
+      () => {
+        Object.keys(openWindows).slice().forEach(id => {
+          const win = getWin(id);
+          win.style.display = 'none';
+          win.classList.remove('minimized', 'maximized');
+        });
+        Object.keys(openWindows).forEach(id => removeTaskbarButton(id));
+        shutdownScreen.classList.add('open');
+      }
+    );
+  });
+  shutdownScreen.addEventListener('click', () => shutdownScreen.classList.remove('open'));
+
+  // ---------- dialogs ----------
+  function showInfoDialog(title, message) {
+    const overlay = document.createElement('div');
+    overlay.className = 'win98-dialog-overlay';
+    overlay.innerHTML =
+      '<div class="win98-dialog">' +
+        '<div class="win98-dialog-titlebar">' + title + '</div>' +
+        '<div class="win98-dialog-body"><span>' + message + '</span></div>' +
+        '<div class="win98-dialog-buttons"><button data-ok>OK</button></div>' +
+      '</div>';
+    dialogRoot.appendChild(overlay);
+    overlay.querySelector('[data-ok]').addEventListener('click', () => overlay.remove());
+    overlay.addEventListener('mousedown', (e) => { if (e.target === overlay) overlay.remove(); });
+  }
+
+  function showConfirmDialog(title, message, onYes) {
+    const overlay = document.createElement('div');
+    overlay.className = 'win98-dialog-overlay';
+    overlay.innerHTML =
+      '<div class="win98-dialog">' +
+        '<div class="win98-dialog-titlebar">' + title + '</div>' +
+        '<div class="win98-dialog-body"><span>' + message + '</span></div>' +
+        '<div class="win98-dialog-buttons"><button data-yes>Yes</button><button data-no>No</button></div>' +
+      '</div>';
+    dialogRoot.appendChild(overlay);
+    overlay.querySelector('[data-yes]').addEventListener('click', () => { overlay.remove(); onYes(); });
+    overlay.querySelector('[data-no]').addEventListener('click', () => overlay.remove());
+  }
+
+  // ---------- clock ----------
+  function updateClock() {
+    const now = new Date();
+    let h = now.getHours();
+    const m = now.getMinutes();
+    const ampm = h >= 12 ? 'PM' : 'AM';
+    h = h % 12; if (h === 0) h = 12;
+    document.getElementById('taskbarClock').textContent =
+      h + ':' + String(m).padStart(2, '0') + ' ' + ampm;
+  }
+  updateClock();
+  setInterval(updateClock, 15000);
+
+  // ---------- screensaver (Mystify-style bouncing lines) ----------
+  const IDLE_MS = 25000;
+  const screensaver = document.getElementById('screensaver');
+  const ssCanvas = document.getElementById('screensaverCanvas');
+  const ssCtx = ssCanvas.getContext('2d');
+  let lastActivity = Date.now();
+  let ssActive = false;
+  let ssRafId = null;
+  let ssShapes = [];
+  let ssHue = 0;
+
+  function makeShape() {
+    const points = [];
+    for (let i = 0; i < 4; i++) {
+      points.push({
+        x: Math.random() * ssCanvas.width,
+        y: Math.random() * ssCanvas.height,
+        vx: (Math.random() - 0.5) * 6,
+        vy: (Math.random() - 0.5) * 6
+      });
+    }
+    return points;
+  }
+
+  function ssStep() {
+    ssCtx.fillStyle = 'rgba(0,0,0,0.08)';
+    ssCtx.fillRect(0, 0, ssCanvas.width, ssCanvas.height);
+
+    ssHue = (ssHue + 1) % 360;
+
+    ssShapes.forEach((shape, idx) => {
+      shape.forEach(p => {
+        p.x += p.vx;
+        p.y += p.vy;
+        if (p.x < 0 || p.x > ssCanvas.width) p.vx *= -1;
+        if (p.y < 0 || p.y > ssCanvas.height) p.vy *= -1;
+        p.x = Math.max(0, Math.min(ssCanvas.width, p.x));
+        p.y = Math.max(0, Math.min(ssCanvas.height, p.y));
+      });
+
+      ssCtx.strokeStyle = 'hsl(' + ((ssHue + idx * 180) % 360) + ', 90%, 60%)';
+      ssCtx.lineWidth = 2;
+      ssCtx.beginPath();
+      ssCtx.moveTo(shape[0].x, shape[0].y);
+      for (let i = 1; i < shape.length; i++) ssCtx.lineTo(shape[i].x, shape[i].y);
+      ssCtx.closePath();
+      ssCtx.stroke();
+    });
+
+    ssRafId = requestAnimationFrame(ssStep);
+  }
+
+  function showScreensaver() {
+    if (shutdownScreen.classList.contains('open')) return;
+    ssCanvas.width = window.innerWidth;
+    ssCanvas.height = window.innerHeight;
+    ssCtx.fillStyle = '#000';
+    ssCtx.fillRect(0, 0, ssCanvas.width, ssCanvas.height);
+    ssShapes = [makeShape(), makeShape()];
+    screensaver.classList.add('active');
+    ssActive = true;
+    closeStartMenu();
+    ssRafId = requestAnimationFrame(ssStep);
+  }
+
+  function hideScreensaver() {
+    screensaver.classList.remove('active');
+    ssActive = false;
+    if (ssRafId) cancelAnimationFrame(ssRafId);
+  }
+
+  function resetIdleTimer() {
+    lastActivity = Date.now();
+    if (ssActive) hideScreensaver();
+  }
+
+  ['mousemove', 'mousedown', 'keydown', 'touchstart', 'wheel'].forEach(evt => {
+    document.addEventListener(evt, resetIdleTimer);
+  });
+
+  setInterval(() => {
+    if (!ssActive && Date.now() - lastActivity > IDLE_MS) showScreensaver();
+  }, 1000);
+})();
+</script>
+</body>
+</html>

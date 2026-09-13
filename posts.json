@@ -1,0 +1,16 @@
+[
+  {
+    "id": 1,
+    "title": "Hello world!",
+    "date": "Sep 12, 2026",
+    "icon": "https://win98icons.alexmeub.com/icons/png/write_wordpad-0.png",
+    "body": "<p>Not much really to say here im mostly just testing my blog works (it really doesnt work very well on my side) so yeah Hello world!</p>"
+  },
+  {
+    "id": 2,
+    "title": "Hi",
+    "date": "Sep 12, 2026",
+    "icon": "https://win98icons.alexmeub.com/icons/png/msn_cool-1.png",
+    "body": "<p>Hi reader i suppose youve been on my website and seen this blog. I just have it here to... put stuff in to yknow just talk about stuff i wanna talk about i suppose.<br>I&#x27;m atomicdude (if ya didn&#x27;t know already) and well im just sitting here in a hotel lodge in the middle of somewhere after a nice coffee... writing a blog post thinking about who&#x27;s gonna see it but yeah this is really my first proper way of cummuincating with you, the netizen visiting my site! So yeah have a good time on my website and have a good day</p>"
+  }
+]

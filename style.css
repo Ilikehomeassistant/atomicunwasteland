@@ -1,0 +1,100 @@
+*, *::before, *::after {
+  margin: 0;
+  padding: 0;
+  box-sizing: border-box;
+}
+
+body {
+  background: #000;
+  color: #fff;
+  font-family: monospace;
+  height: 100vh;
+  overflow: hidden;
+  display: flex;
+  align-items: center;
+  justify-content: center;
+}
+
+/* ── loading ──────────────────────────────────────────────────────────────── */
+#loading {
+  display: flex;
+  flex-direction: column;
+  align-items: center;
+  gap: 14px;
+  text-align: center;
+  padding: 24px;
+}
+
+#loading p     { color: rgba(255,255,255,0.6); font-size: 0.9em; }
+#loading p.sub { color: rgba(255,255,255,0.35); font-size: 0.75em; line-height: 1.6; }
+#loading code  { background: rgba(255,255,255,0.1); padding: 1px 5px; border-radius: 3px; }
+
+.spinner {
+  width: 44px;
+  height: 44px;
+  border: 3px solid rgba(255,255,255,0.12);
+  border-top-color: #fff;
+  border-radius: 50%;
+  animation: spin 0.8s linear infinite;
+}
+@keyframes spin { to { transform: rotate(360deg); } }
+
+/* ── error ────────────────────────────────────────────────────────────────── */
+#error {
+  max-width: 420px;
+  padding: 20px 26px;
+  background: rgba(255, 60, 60, 0.08);
+  border: 1px solid rgba(255, 60, 60, 0.35);
+  border-radius: 10px;
+  color: #ff8888;
+  text-align: center;
+  line-height: 1.7;
+  font-size: 0.88em;
+}
+
+/* ── app ──────────────────────────────────────────────────────────────────── */
+#app {
+  position: fixed;
+  inset: 0;
+}
+
+#video {
+  width: 100%;
+  height: 100%;
+  object-fit: cover;
+}
+
+#canvas {
+  position: absolute;
+  inset: 0;
+  width: 100%;
+  height: 100%;
+}
+
+/* HUD pill */
+#hud {
+  position: absolute;
+  top: 14px;
+  left: 14px;
+  background: rgba(0, 0, 0, 0.55);
+  padding: 6px 16px;
+  border-radius: 99px;
+  font-size: 0.78em;
+}
+
+#count { color: #00ff00; font-weight: bold; }
+
+/* generator link */
+#gen-link {
+  position: absolute;
+  bottom: 14px;
+  right: 14px;
+  background: rgba(0, 0, 0, 0.55);
+  color: rgba(255, 255, 255, 0.75);
+  padding: 6px 16px;
+  border-radius: 99px;
+  text-decoration: none;
+  font-size: 0.76em;
+  transition: background 0.15s;
+}
+#gen-link:hover { background: rgba(255, 255, 255, 0.12); }
