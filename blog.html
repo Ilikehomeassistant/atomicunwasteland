@@ -237,6 +237,7 @@
       fetch('/posts.json')
         .then(function(r) { return r.json(); })
         .then(function(posts) {
+          posts = posts.slice().reverse();
           renderFeed(posts);
           document.getElementById('postCount').textContent = posts.length + ' post(s)';
 
