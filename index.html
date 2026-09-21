@@ -266,6 +266,7 @@
             <a href="/GAMEZ.html"><img src="/icons/Games!.png" alt="games"></a>
             <a href="https://atomicunwasteland.neocities.org/airlitepage.html"><img src="/icons/lite%20page.png" alt="lite page"></a>
             <a href="/hobbypage.html"><img src="/icons/myhobbies88x31.png" alt="my hobbies"></a>
+            <a href="/blog.html"><img src="/icons/Rss_Feed_88x31.gif" alt="blog"></a>
           </marquee>
         </div>
 
@@ -355,132 +356,6 @@
         "last updated: " + new Date().toLocaleDateString();
     </script>
 
-    <div id="blog-window" class="win98-window" style="position:absolute; top:140px; left:24px; width:220px; max-width:220px; margin:0; z-index:9999;">
-      <div class="win98-titlebar" id="blog-titlebar" style="cursor:grab; user-select:none;">
-        <span class="win98-title">
-          <img src="https://win98icons.alexmeub.com/icons/png/msn_cool-4.png" alt="" style="width:16px;height:16px;" onerror="this.style.display='none'">
-          blog - MSN News
-        </span>
-        <div class="win98-titlebar-btns">
-          <div class="win98-btn" id="blog-close" title="Close">X</div>
-        </div>
-      </div>
-      <div class="content-panel" id="blog-widget-body" style="font-size:11px; padding:0; max-height:150px; overflow-y:auto;">
-        <p style="margin:0; padding:8px;">loading posts&hellip;</p>
-      </div>
-    </div>
-
-    <script>
-      (function() {
-        var win = document.getElementById('blog-window');
-        var bar = document.getElementById('blog-titlebar');
-        var closeBtn = document.getElementById('blog-close');
-        var dragging = false, ox = 0, oy = 0;
-        var SNAP = 32;
-
-        bar.addEventListener('mousedown', function(e) {
-          dragging = true;
-          win.style.transition = 'none';
-          ox = e.clientX - win.getBoundingClientRect().left;
-          oy = e.clientY - win.getBoundingClientRect().top;
-          bar.style.cursor = 'grabbing';
-          e.preventDefault();
-        });
-
-        document.addEventListener('mousemove', function(e) {
-          if (!dragging) return;
-          win.style.left = (e.clientX - ox + window.scrollX) + 'px';
-          win.style.top = (e.clientY - oy + window.scrollY) + 'px';
-        });
-
-        function snapTargets() {
-          var targets = [];
-          var big = document.querySelector('.win98-window:not(#blog-window)');
-          if (big) targets.push(big.getBoundingClientRect());
-          if (window.__getWebampRect) {
-            var wr = window.__getWebampRect();
-            if (wr) targets.push(wr);
-          }
-          return targets;
-        }
-
-        // Side-only snap (left/right of a target), never top/bottom.
-        window.__trySideSnap = function(rect, targets, snapDist) {
-          var best = null;
-          targets.forEach(function(t) {
-            var distLeft = Math.abs(rect.right - t.left);
-            var distRight = Math.abs(rect.left - t.right);
-            var d = Math.min(distLeft, distRight);
-            if (d > snapDist) return;
-            if (!best || d < best.dist) {
-              best = { dist: d, side: distLeft <= distRight ? 'left' : 'right', target: t };
-            }
-          });
-          return best;
-        };
-
-        document.addEventListener('mouseup', function() {
-          if (!dragging) return;
-          dragging = false;
-          bar.style.cursor = 'grab';
-
-          var rect = win.getBoundingClientRect();
-          var best = window.__trySideSnap(rect, snapTargets(), SNAP);
-          if (!best) return;
-
-          var newLeft = best.side === 'left'
-            ? best.target.left - rect.width
-            : best.target.right;
-          var newTop = rect.top;
-
-          win.style.transition = 'left .15s ease, top .15s ease';
-          win.style.left = (newLeft + window.scrollX) + 'px';
-          win.style.top = (newTop + window.scrollY) + 'px';
-          setTimeout(function() { win.style.transition = 'none'; }, 200);
-        });
-
-        closeBtn.addEventListener('click', function() {
-          win.style.display = 'none';
-        });
-
-        window.__getBlogWindowRect = function() {
-          return win.style.display === 'none' ? null : win.getBoundingClientRect();
-        };
-      })();
-    </script>
-
-    <script>
-      (function() {
-        var body = document.getElementById('blog-widget-body');
-
-        function snippet(html, len) {
-          var tmp = document.createElement('div');
-          tmp.innerHTML = html;
-          var text = (tmp.textContent || '').trim();
-          return text.length > len ? text.slice(0, len).trim() + '…' : text;
-        }
-
-        fetch('/posts.json')
-          .then(function(r) { return r.json(); })
-          .then(function(posts) {
-            posts = posts.slice().reverse();
-            if (!posts.length) {
-              body.innerHTML = '<p style="margin:0;padding:8px;">no posts yet!</p>';
-              return;
-            }
-            body.innerHTML = posts.map(function(p) {
-              return '<a href="/blog.html?post=' + p.id + '" style="display:block;text-decoration:none;color:#000;padding:6px 8px;border-bottom:1px solid #999;">' +
-                '<div style="font-weight:bold;">' + p.title + '</div>' +
-                '<div style="color:#333;">' + snippet(p.body, 70) + '</div>' +
-                '</a>';
-            }).join('');
-          })
-          .catch(function() {
-            body.innerHTML = '<p style="margin:0;padding:8px;">couldn\'t load posts, sorry!</p>';
-          });
-      })();
-    </script>
-
     <div id="webamp-container" style="position:fixed; top:220px; right:20px; width:300px; height:120px; z-index:9500;"></div>
     <script type="module">
       import Webamp from "https://unpkg.com/webamp@^2";
@@ -507,7 +382,6 @@
           },
         ],
       });
-      window.__webamp = webamp;
       webamp.renderWhenReady(document.getElementById("webamp-container")).then(function () {
         webamp.play();
 
@@ -530,10 +404,20 @@
           requestAnimationFrame(tick);
         }
 
-        window.__getWebampRect = function() {
-          var el = document.getElementById('main-window');
-          return el && el.offsetWidth > 0 ? el.getBoundingClientRect() : null;
-        };
+        // Side-only snap (left/right of a target), never top/bottom.
+        function trySideSnap(rect, targets, snapDist) {
+          var best = null;
+          targets.forEach(function(t) {
+            var distLeft = Math.abs(rect.right - t.left);
+            var distRight = Math.abs(rect.left - t.right);
+            var d = Math.min(distLeft, distRight);
+            if (d > snapDist) return;
+            if (!best || d < best.dist) {
+              best = { dist: d, side: distLeft <= distRight ? 'left' : 'right', target: t };
+            }
+          });
+          return best;
+        }
 
         var webampCalib = null;
         var state0 = webamp.store.getState();
@@ -554,19 +438,15 @@
 
         var WEBAMP_SNAP = 32;
         document.addEventListener('mouseup', function() {
-          if (!webampCalib || !window.__trySideSnap) return;
+          if (!webampCalib) return;
           var el = document.getElementById('main-window');
           if (!el) return;
           waitForStableRect(el, function(rect) {
             var targets = [];
-            var big = document.querySelector('.win98-window:not(#blog-window)');
+            var big = document.querySelector('.win98-window');
             if (big) targets.push(big.getBoundingClientRect());
-            if (window.__getBlogWindowRect) {
-              var br = window.__getBlogWindowRect();
-              if (br) targets.push(br);
-            }
             console.log('[webamp-snap] checking rect=', rect, 'targets=', targets);
-            var best = window.__trySideSnap(rect, targets, WEBAMP_SNAP);
+            var best = trySideSnap(rect, targets, WEBAMP_SNAP);
             if (!best) { console.log('[webamp-snap] nothing within', WEBAMP_SNAP, 'px'); return; }
             var newLeft = best.side === 'left' ? best.target.left - rect.width : best.target.right;
             var newTop = rect.top;
