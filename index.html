@@ -66,7 +66,7 @@
       .win98-window {
         flex: 1 1 auto;
         min-width: 0;
-        max-width: 620px;
+        max-width: 520px;
         margin: 10px auto;
         background: #c0c0c0;
         padding: 3px;
@@ -222,6 +222,39 @@
         vertical-align: middle;
         margin: 0 6px;
       }
+
+      /* ---- Bubble & Brew: a floating window that drags and snaps to screen edges, the IE window and Webamp ---- */
+      .brew-window {
+        position: fixed;
+        display: none;
+        z-index: 9400;               /* under Webamp (9500) until you click the game, then above it */
+        background: #c0c0c0;
+        padding: 3px;
+        box-shadow:
+          inset -1px -1px 0 #0a0a0a,
+          inset 1px 1px 0 #fff,
+          inset -2px -2px 0 #808080,
+          inset 2px 2px 0 #dfdfdf,
+          4px 4px 10px rgba(0, 0, 0, 0.45);
+        font-family: Tahoma, "MS Sans Serif", Geneva, sans-serif;
+      }
+      .brew-window.open { display: block; }
+      .brew-window.focused { z-index: 9600; }
+      .brew-window.maxed { display: flex !important; flex-direction: column; }
+      .brew-window .win98-titlebar { cursor: grab; touch-action: none; user-select: none; }
+      .brew-window.dragging .win98-titlebar { cursor: grabbing; }
+      .brew-window.maxed .win98-titlebar { cursor: default; }
+      .brew-window .win98-btn { cursor: pointer; }
+      .brew-body {
+        background: #000;
+        line-height: 0;
+        padding: 2px;
+        box-shadow: inset 1px 1px 0 #808080, inset -1px -1px 0 #fff, inset 2px 2px 0 #0a0a0a, inset -2px -2px 0 #dfdfdf;
+      }
+      .brew-body iframe { display: block; border: 0; background: #120d1e; }
+      .brew-window.rolled .brew-body { display: none; }
+      .brew-window.maxed .brew-body { flex: 1; min-height: 0; }
+      .brew-window.maxed .brew-body iframe { width: 100% !important; height: 100% !important; }
     </style>
   </head>
   <body>
@@ -359,6 +392,205 @@
         "last updated: " + new Date().toLocaleDateString();
     </script>
 
+    <!-- ============ BUBBLE & BREW WINDOW ============ -->
+    <div class="brew-window" id="brew-window" role="dialog" aria-label="Bubble &amp; Brew">
+      <div class="win98-titlebar" id="brew-titlebar">
+        <span class="win98-title">
+          <svg id="brew-icon" title="Click to change the size" width="16" height="16" viewBox="0 0 32 32" style="shape-rendering:crispEdges;cursor:pointer"><rect x="6" y="14" width="20" height="3" fill="#6a6488"/><rect x="8" y="17" width="16" height="7" fill="#4a4560"/><rect x="9" y="12" width="14" height="3" fill="#7b3fc4"/><rect x="12" y="7" width="2" height="2" fill="#d9b3ff"/><rect x="18" y="5" width="2" height="2" fill="#b98cf5"/></svg>
+          Bubble &amp; Brew
+        </span>
+        <div class="win98-titlebar-btns">
+          <div class="win98-btn" id="brew-min" title="Roll up">_</div>
+          <div class="win98-btn" id="brew-max" title="Maximize">&#9633;</div>
+          <div class="win98-btn" id="brew-close" title="Close">X</div>
+        </div>
+      </div>
+      <div class="brew-body"><iframe id="brew-frame" data-src="bubble-and-brew.html" allow="autoplay" title="Bubble &amp; Brew" width="176" height="200" scrolling="no"></iframe></div>
+    </div>
+
+    <script>
+      // Bubble & Brew window: it is simply on the page, like the Webamp player. Drag it by the title bar. It snaps (within
+      // 16px) to the screen edges, the main IE window and the Webamp windows; hold Alt while dragging to move it freely.
+      // On load it picks the biggest game size that fits in the free space beside the IE window (left of it, or right of it
+      // below Webamp) so it never covers the page; if nothing fits it goes to a corner at the smallest size.
+      (function () {
+        var win = document.getElementById('brew-window');
+        var bar = document.getElementById('brew-titlebar');
+        var frame = document.getElementById('brew-frame');
+        var SNAP = 16, MARGIN = 6, KEY = 'brew-window-pos-v3';
+        var SCALES = [4, 3.5, 3, 2.5, 2, 1.75, 1.5, 1.25, 1];                    // device pixels per game pixel; whole numbers are crispest
+        var drag = null, maxed = false, rolled = false, s = 2, moved = false, saved = null, dpr = window.devicePixelRatio || 1;
+
+        function clamp(v, lo, hi) { return Math.max(lo, Math.min(hi, v)); }
+        // CSS size of the game frame for a scale. Rounded up so the game (which floors) really gets that many device pixels.
+        function frameCss(sc) { return { w: Math.ceil(176 * sc / dpr), h: Math.ceil(200 * sc / dpr) }; }
+        function gameSize() { var f = frameCss(s); frame.style.width = f.w + 'px'; frame.style.height = f.h + 'px'; }
+        function chrome() {                                           // width/height of the window around the game frame
+          frame.style.width = '320px'; frame.style.height = '200px';   // wider than the title bar's own minimum, so the frame decides the width
+          return { w: win.offsetWidth - 320, h: win.offsetHeight - 200 };
+        }
+        function fitScale() {                                         // never bigger than the screen allows
+          var c = chrome(), maxW = window.innerWidth - 16 - c.w, maxH = window.innerHeight - 16 - c.h;
+          while (s > 1 && (frameCss(s).w > maxW || frameCss(s).h > maxH)) s = SCALES[Math.min(SCALES.length - 1, SCALES.indexOf(s) + 1)] || 1;
+          gameSize();
+        }
+        function place(x, y) { win.style.left = Math.round(x) + 'px'; win.style.top = Math.round(y) + 'px'; }
+        function keepOnScreen() {
+          var w = win.offsetWidth;
+          place(clamp(win.offsetLeft, 100 - w, window.innerWidth - 100), clamp(win.offsetTop, 0, window.innerHeight - 30));
+        }
+        function savePos() { try { localStorage.setItem(KEY, JSON.stringify({ x: win.offsetLeft, y: win.offsetTop, s: s })); } catch (e) {} }
+        function focusWin(on) { win.classList.toggle('focused', on); }
+        function ieRect() { var ie = document.querySelector('.win98-window'); return ie ? ie.getBoundingClientRect() : null; }
+
+        // Where Webamp is (or, before it has loaded, where it opens by default: down the right-hand side).
+        function webampRect() {
+          var l = 1e9, t = 1e9, r = -1e9, b = -1e9, any = false;
+          document.querySelectorAll('#main-window, #equalizer-window, #playlist-window').forEach(function (el) {
+            var q = el.getBoundingClientRect();
+            if (q.width > 0 && q.height > 0) { any = true; l = Math.min(l, q.left); t = Math.min(t, q.top); r = Math.max(r, q.right); b = Math.max(b, q.bottom); }
+          });
+          return any ? { left: l, top: t, right: r, bottom: b } : { left: window.innerWidth - 300, top: 100, right: window.innerWidth - 14, bottom: 470 };
+        }
+
+        // Free spaces that don't cover the main page: left of the IE window, and right of it below Webamp.
+        function slots() {
+          var ie = ieRect(), top = Math.max(70, ie ? ie.top + 30 : 70), out = [];
+          if (!ie) return [{ x: 8, y: top, w: window.innerWidth - 16, h: window.innerHeight - 8 - top, flush: 'left' }];
+          out.push({ x: 4, y: top, w: ie.left - 4, h: window.innerHeight - 8 - top, flush: 'right' });
+          var wa = webampRect(), y2 = Math.max(top, wa.bottom + 8);
+          if (wa.left > ie.right) out.push({ x: ie.right, y: y2, w: window.innerWidth - 8 - ie.right, h: window.innerHeight - 8 - y2, flush: 'left' });
+          return out;
+        }
+        function defaultLayout() {
+          var c = chrome(), best = null;
+          slots().forEach(function (sl) {
+            for (var i = 0; i < SCALES.length; i++) {
+              var f = frameCss(SCALES[i]), w = f.w + c.w, h = f.h + c.h;
+              if (w <= sl.w && h <= sl.h) { if (!best || SCALES[i] > best.s) best = { s: SCALES[i], sl: sl, w: w }; return; }
+            }
+          });
+          if (best) {
+            s = best.s; gameSize();
+            place(best.sl.flush === 'right' ? Math.floor(best.sl.x + best.sl.w - best.w) - 2 : Math.ceil(best.sl.x) + 2, best.sl.y);   // beside the IE window, with a 2px gap so rounding can never overlap it (drag near it to snap flush)
+          } else {                                                    // nothing fits: smallest size, top-left corner
+            s = 1; gameSize(); place(8, 70);
+          }
+          keepOnScreen();
+        }
+
+        // Things this window snaps to: the IE window and the Webamp windows.
+        function targets() {
+          var out = [], ie = ieRect();
+          if (ie) out.push(ie);
+          document.querySelectorAll('#main-window, #equalizer-window, #playlist-window').forEach(function (el) {
+            var r = el.getBoundingClientRect();
+            if (r.width > 0 && r.height > 0) out.push(r);
+          });
+          return out;
+        }
+        function snap(x, y, w, h) {
+          var bx = null, by = null;                              // best x / y candidate, and the target each came from
+          function tryX(c, t) { var d = Math.abs(c - x); if (d <= SNAP && (!bx || d < bx.d)) bx = { v: c, d: d, t: t }; }
+          function tryY(c, t) { var d = Math.abs(c - y); if (d <= SNAP && (!by || d < by.d)) by = { v: c, d: d, t: t }; }
+          tryX(0, null); tryX(window.innerWidth - w, null); tryY(0, null); tryY(window.innerHeight - h, null);   // screen edges
+          targets().forEach(function (t) {
+            if (y < t.bottom + SNAP && y + h > t.top - SNAP) { tryX(t.left - w, t); tryX(t.right, t); }   // side by side
+            if (x < t.right + SNAP && x + w > t.left - SNAP) { tryY(t.top - h, t); tryY(t.bottom, t); }   // stacked
+          });
+          var nx = bx ? bx.v : x, ny = by ? by.v : y;
+          // once touching a window, also line up with its edge (tops/bottoms when side by side, lefts/rights when stacked)
+          if (bx && bx.t && !by) [bx.t.top, bx.t.bottom - h].forEach(function (c) { if (Math.abs(c - y) <= SNAP) ny = c; });
+          if (by && by.t && !bx) [by.t.left, by.t.right - w].forEach(function (c) { if (Math.abs(c - x) <= SNAP) nx = c; });
+          return { x: nx, y: ny };
+        }
+
+        function setMax(on) {
+          maxed = on;
+          win.classList.toggle('maxed', on);
+          if (on) {
+            win.dataset.restore = win.offsetLeft + ',' + win.offsetTop;
+            win.style.left = MARGIN + 'px'; win.style.top = MARGIN + 'px';
+            win.style.width = (window.innerWidth - 2 * MARGIN) + 'px'; win.style.height = (window.innerHeight - 2 * MARGIN) + 'px';
+          } else {
+            win.style.width = ''; win.style.height = '';
+            var r = (win.dataset.restore || '80,70').split(',');
+            place(+r[0], +r[1]); fitScale(); keepOnScreen();
+          }
+        }
+        function loadGame() { if (!frame.getAttribute('src')) frame.setAttribute('src', frame.dataset.src); }
+
+        document.getElementById('brew-close').addEventListener('click', function () { win.classList.remove('open', 'focused'); });
+        document.getElementById('brew-min').addEventListener('click', function () { rolled = !rolled; win.classList.toggle('rolled', rolled); });
+        document.getElementById('brew-max').addEventListener('click', function () { if (rolled) { rolled = false; win.classList.remove('rolled'); } setMax(!maxed); moved = true; });
+        bar.addEventListener('dblclick', function (e) { if (!e.target.closest('.win98-btn')) { setMax(!maxed); moved = true; } });
+
+        // Click the little cauldron in the title bar to cycle the game through bigger sizes (then back to the smallest).
+        function fitWindow() {
+          var w = win.offsetWidth, h = win.offsetHeight;
+          place(clamp(win.offsetLeft, 0, Math.max(0, window.innerWidth - w)), clamp(win.offsetTop, 0, Math.max(0, window.innerHeight - h)));
+        }
+        function cycleSize() {
+          var c = chrome(), maxW = window.innerWidth - 8 - c.w, maxH = window.innerHeight - 8 - c.h;
+          var fits = SCALES.filter(function (sc) { var f = frameCss(sc); return f.w <= maxW && f.h <= maxH; }).sort(function (a, b) { return a - b; });
+          if (!fits.length) { gameSize(); return; }
+          var bigger = fits.filter(function (sc) { return sc > s; })[0];
+          s = bigger || fits[0];
+          gameSize(); fitWindow(); moved = true; savePos();
+        }
+        document.getElementById('brew-icon').addEventListener('click', function () { if (!maxed) cycleSize(); });
+
+        bar.addEventListener('pointerdown', function (e) {
+          if (e.button !== 0 || maxed || e.target.closest('.win98-btn') || e.target.closest('#brew-icon')) return;
+          drag = { dx: e.clientX - win.offsetLeft, dy: e.clientY - win.offsetTop };
+          bar.setPointerCapture(e.pointerId);
+          win.classList.add('dragging');
+          frame.style.pointerEvents = 'none';                    // don't let the game steal the drag
+          e.preventDefault();
+        });
+        bar.addEventListener('pointermove', function (e) {
+          if (!drag) return;
+          var w = win.offsetWidth, h = win.offsetHeight;
+          var x = clamp(e.clientX - drag.dx, 100 - w, window.innerWidth - 100);
+          var y = clamp(e.clientY - drag.dy, 0, window.innerHeight - 30);
+          if (!e.altKey) { var sn = snap(x, y, w, h); x = sn.x; y = sn.y; }
+          place(x, y);
+        });
+        function endDrag() {
+          if (!drag) return;
+          drag = null; moved = true;
+          win.classList.remove('dragging');
+          frame.style.pointerEvents = '';
+          savePos();
+        }
+        bar.addEventListener('pointerup', endDrag);
+        bar.addEventListener('pointercancel', endDrag);
+
+        win.addEventListener('pointerdown', function () { focusWin(true); });
+        document.addEventListener('pointerdown', function (e) { if (!win.contains(e.target)) focusWin(false); });   // lets Webamp sit on top again
+        window.addEventListener('resize', function () {
+          dpr = window.devicePixelRatio || 1;                    // browser zoom changes this
+          if (!win.classList.contains('open')) return;
+          if (maxed) { win.style.width = (window.innerWidth - 2 * MARGIN) + 'px'; win.style.height = (window.innerHeight - 2 * MARGIN) + 'px'; }
+          else if (!moved && !saved) defaultLayout();
+          else { fitScale(); keepOnScreen(); }
+        });
+
+        // ---- show it on the page
+        try { saved = JSON.parse(localStorage.getItem(KEY)); } catch (e) { saved = null; }
+        win.classList.add('open');
+        if (saved && isFinite(saved.x) && isFinite(saved.y)) { s = SCALES.indexOf(saved.s) >= 0 ? saved.s : 2; fitScale(); place(saved.x, saved.y); keepOnScreen(); }
+        else defaultLayout();
+        function ready() {
+          if (!moved && !saved) defaultLayout();                 // the page has finished laying out
+          loadGame();                                            // the game itself loads once the page is up, to keep the page snappy
+          // Webamp appears a moment later; re-check the free space once it is there (only if you haven't moved the window yet)
+          [1500, 3500].forEach(function (ms) { setTimeout(function () { if (!moved && !saved && win.classList.contains('open') && !maxed) defaultLayout(); }, ms); });
+        }
+        if (document.readyState === 'complete') ready(); else window.addEventListener('load', ready);
+      })();
+    </script>
+
     <div id="webamp-container" style="position:fixed; top:220px; right:20px; width:300px; height:120px; z-index:9500;"></div>
     <script type="module">
       import Webamp from "https://unpkg.com/webamp@^2";
@@ -448,6 +680,8 @@
             var targets = [];
             var big = document.querySelector('.win98-window');
             if (big) targets.push(big.getBoundingClientRect());
+            var brewWin = document.getElementById('brew-window');
+            if (brewWin && brewWin.classList.contains('open') && !brewWin.classList.contains('maxed')) targets.push(brewWin.getBoundingClientRect());
             console.log('[webamp-snap] checking rect=', rect, 'targets=', targets);
             var best = trySideSnap(rect, targets, WEBAMP_SNAP);
             if (!best) { console.log('[webamp-snap] nothing within', WEBAMP_SNAP, 'px'); return; }
