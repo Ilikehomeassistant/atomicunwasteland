@@ -245,6 +245,7 @@
       .brew-window.dragging .win98-titlebar { cursor: grabbing; }
       .brew-window.maxed .win98-titlebar { cursor: default; }
       .brew-window .win98-btn { cursor: pointer; }
+      .brew-window .win98-titlebar-btns a.win98-btn { display: inline-block; text-decoration: none; color: #000; }
       .brew-body {
         background: #000;
         line-height: 0;
@@ -300,7 +301,7 @@
             <a href="https://atomicunwasteland.neocities.org/airlitepage.html"><img src="/icons/lite%20page.png" width="88" height="31" alt="lite page"></a>
             <a href="/hobbypage.html"><img src="/icons/myhobbies88x31.png" width="88" height="31" alt="my hobbies"></a>
             <a href="/blog.html"><img src="/icons/Rss_Feed_88x31.gif" width="88" height="31" alt="blog"></a>
-            <a href="/placeholder.html"><img src="/icons/Hyperlinks88x31_1.gif"></a>
+            <a href="/buttons.html"><img src="/icons/Hyperlinks88x31_1.gif"></a>
           </marquee>
         </div>
 
@@ -400,6 +401,7 @@
           Bubble &amp; Brew
         </span>
         <div class="win98-titlebar-btns">
+          <a class="win98-btn" id="brew-install" href="bubble-and-brew.html" target="_blank" rel="noopener" title="Open the standalone game in its own tab - on a phone, use Share / menu &#8594; Add to Home Screen to install it as an app that works offline">&#8599;</a>
           <div class="win98-btn" id="brew-min" title="Roll up">_</div>
           <div class="win98-btn" id="brew-max" title="Maximize">&#9633;</div>
           <div class="win98-btn" id="brew-close" title="Close">X</div>
@@ -417,7 +419,7 @@
         var win = document.getElementById('brew-window');
         var bar = document.getElementById('brew-titlebar');
         var frame = document.getElementById('brew-frame');
-        var SNAP = 16, MARGIN = 6, KEY = 'brew-window-pos-v3';
+        var SNAP = 16, MARGIN = 6, KEY = 'brew-window-pos-v4';
         var SCALES = [4, 3.5, 3, 2.5, 2, 1.75, 1.5, 1.25, 1];                    // device pixels per game pixel; whole numbers are crispest
         var drag = null, maxed = false, rolled = false, s = 2, moved = false, saved = null, dpr = window.devicePixelRatio || 1;
 
@@ -581,13 +583,10 @@
         win.classList.add('open');
         if (saved && isFinite(saved.x) && isFinite(saved.y)) { s = SCALES.indexOf(saved.s) >= 0 ? saved.s : 2; fitScale(); place(saved.x, saved.y); keepOnScreen(); }
         else defaultLayout();
-        function ready() {
-          if (!moved && !saved) defaultLayout();                 // the page has finished laying out
-          loadGame();                                            // the game itself loads once the page is up, to keep the page snappy
-          // Webamp appears a moment later; re-check the free space once it is there (only if you haven't moved the window yet)
-          [1500, 3500].forEach(function (ms) { setTimeout(function () { if (!moved && !saved && win.classList.contains('open') && !maxed) defaultLayout(); }, ms); });
-        }
-        if (document.readyState === 'complete') ready(); else window.addEventListener('load', ready);
+        loadGame();                                              // load the game right away; don't wait on other page resources
+        // Webamp appears a moment later, and streams audio from archive.org that can take a long time (or never fully
+        // "load"), so re-checking free space must not depend on window's load event - only on fixed delays
+        [400, 1500, 3500].forEach(function (ms) { setTimeout(function () { if (!moved && !saved && win.classList.contains('open') && !maxed) defaultLayout(); }, ms); });
       })();
     </script>
 
