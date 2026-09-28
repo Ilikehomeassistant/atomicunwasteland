@@ -1,0 +1,927 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+  <meta charset="UTF-8"/>
+  <meta name="viewport" content="width=device-width, initial-scale=1.0"/>
+  <title>NetChat v1.0</title>
+  <link rel="icon" type="image/jpeg" href="https://atomicunwasteland.neocities.org/icons/favicon.png">
+  <style>
+    *, *::before, *::after { box-sizing: border-box; margin: 0; padding: 0; }
+
+    body {
+      font-family: 'MS Sans Serif', 'Microsoft Sans Serif', Arial, sans-serif;
+      font-size: 11px;
+      background: #c0c0c0;
+      color: #000;
+      height: 100dvh;
+      display: flex;
+      flex-direction: column;
+      overflow: hidden;
+      cursor: default;
+      user-select: none;
+    }
+
+    .raised {
+      box-shadow: inset -1px -1px #0a0a0a, inset 1px 1px #dfdfdf,
+                  inset -2px -2px #808080, inset 2px 2px #fff;
+    }
+    .sunken {
+      box-shadow: inset -1px -1px #fff, inset 1px 1px #0a0a0a,
+                  inset -2px -2px #dfdfdf, inset 2px 2px #808080;
+    }
+
+    /* TITLE BAR */
+    .titlebar {
+      background: #000080; color: #fff; font-weight: bold; font-size: 11px;
+      padding: 2px 3px; display: flex; align-items: center; gap: 3px; flex-shrink: 0;
+    }
+    .titlebar .tb-icon { font-size: 12px; line-height: 1; }
+    .titlebar .tb-title { flex: 1; }
+    .tb-btn {
+      width: 16px; height: 14px; background: #c0c0c0; color: #000;
+      font-size: 9px; font-weight: bold; font-family: Arial, sans-serif;
+      border: none; cursor: pointer; display: flex; align-items: center;
+      justify-content: center; flex-shrink: 0;
+      box-shadow: inset -1px -1px #0a0a0a, inset 1px 1px #fff,
+                  inset -2px -2px #808080, inset 2px 2px #dfdfdf;
+    }
+    .tb-btn:active {
+      box-shadow: inset -1px -1px #fff, inset 1px 1px #0a0a0a,
+                  inset -2px -2px #dfdfdf, inset 2px 2px #808080;
+      padding: 1px 0 0 1px;
+    }
+
+    /* BUTTONS */
+    button {
+      background: #c0c0c0; color: #000;
+      font-family: 'MS Sans Serif', Arial, sans-serif; font-size: 11px;
+      border: none; padding: 4px 12px; cursor: pointer; min-width: 75px;
+      box-shadow: inset -1px -1px #0a0a0a, inset 1px 1px #fff,
+                  inset -2px -2px #808080, inset 2px 2px #dfdfdf;
+    }
+    button:active {
+      box-shadow: inset -1px -1px #fff, inset 1px 1px #0a0a0a,
+                  inset -2px -2px #dfdfdf, inset 2px 2px #808080;
+      padding: 5px 11px 3px 13px;
+    }
+    button:focus { outline: 1px dotted #000; outline-offset: -4px; }
+    button.small { min-width: 0; padding: 1px 5px; font-size: 10px; }
+    button.small:active { padding: 2px 4px 0 6px; }
+
+    /* INPUTS */
+    input[type="text"] {
+      background: #fff; color: #000;
+      font-family: 'MS Sans Serif', Arial, sans-serif; font-size: 11px;
+      border: none; padding: 2px 3px; outline: none;
+      box-shadow: inset -1px -1px #fff, inset 1px 1px #0a0a0a,
+                  inset -2px -2px #dfdfdf, inset 2px 2px #808080;
+      user-select: text;
+    }
+
+    /* LOBBY */
+    #lobby {
+      position: fixed; inset: 0; background: #c0c0c0;
+      display: flex; align-items: center; justify-content: center; z-index: 10;
+    }
+    #lobbyWin {
+      width: 310px; background: #c0c0c0;
+      box-shadow: inset -1px -1px #0a0a0a, inset 1px 1px #fff,
+                  inset -2px -2px #808080, inset 2px 2px #dfdfdf;
+    }
+    .lby-body { padding: 14px 16px 8px; display: flex; flex-direction: column; gap: 8px; }
+    .lby-row { display: flex; align-items: center; gap: 8px; }
+    .lby-row label { white-space: nowrap; min-width: 70px; }
+    .lby-row input { flex: 1; }
+    #lobbyErr { color: #800000; font-size: 11px; display: none; }
+    .lby-footer {
+      border-top: 1px solid #808080; padding: 8px;
+      display: flex; justify-content: center; gap: 8px;
+    }
+    /* welcome back panel */
+    #welcomePanel { display: none; /* shown by JS */ }
+    #welcomeCard {
+      background: #fff; padding: 8px 10px;
+      box-shadow: inset -1px -1px #fff, inset 1px 1px #0a0a0a,
+                  inset -2px -2px #dfdfdf, inset 2px 2px #808080;
+    }
+    #welcomeName { font-size: 14px; font-weight: bold; color: #000080; }
+    #welcomeId   { font-size: 10px; color: #808080; margin-top: 2px; font-family: 'Lucida Console', monospace; }
+    #switchLink  { font-size: 10px; color: #000080; cursor: pointer; text-decoration: underline; background: none;
+                   border: none; padding: 0; min-width: 0; box-shadow: none; margin-top: 2px; }
+    #switchLink:active { box-shadow: none; padding: 0; }
+    /* new user form — visible by default so form shows even if JS fails to load */
+    #newUserPanel { display: block; }
+    .lby-idnote  { font-size: 10px; color: #808080; font-family: 'Lucida Console', monospace; }
+
+    /* APP */
+    #app { display: none; flex-direction: column; flex: 1; overflow: hidden; }
+    #appBody { display: flex; flex: 1; overflow: hidden; }
+
+    /* SIDEBAR */
+    #sidebar {
+      width: 180px; min-width: 180px; display: flex; flex-direction: column;
+      overflow: hidden; border-right: 1px solid #808080;
+    }
+    #userBar {
+      background: #000080; color: #fff; padding: 3px 6px;
+      display: flex; flex-direction: column; gap: 1px; flex-shrink: 0;
+    }
+    #userBarTop { display: flex; align-items: center; gap: 5px; }
+    .online-dot {
+      width: 7px; height: 7px; border-radius: 50%;
+      background: #00ff00; flex-shrink: 0; box-shadow: 0 0 0 1px #008000;
+    }
+    #myName { flex: 1; overflow: hidden; text-overflow: ellipsis; white-space: nowrap; font-weight: bold; }
+    #myIdLabel { font-size: 9px; color: #aaaaff; font-family: 'Lucida Console', monospace; padding-left: 12px; }
+    #leaveBtn { min-width: 0; padding: 1px 5px; font-size: 10px; }
+
+    .sec-header {
+      background: #808080; color: #fff; padding: 2px 6px; font-size: 11px;
+      display: flex; align-items: center; gap: 3px; flex-shrink: 0;
+    }
+    .sec-header span { flex: 1; }
+    #roomItems { overflow-y: auto; flex-shrink: 0; }
+    #dmItems   { overflow-y: auto; flex: 1; }
+
+    .nav-item {
+      padding: 2px 6px 2px 14px; font-size: 11px; color: #000;
+      cursor: default; white-space: nowrap; overflow: hidden;
+      text-overflow: ellipsis; display: flex; align-items: center; gap: 4px;
+    }
+    .nav-item:hover { background: #000080; color: #fff; }
+    .nav-item.active { background: #000080; color: #fff; }
+    .nav-item .label { flex: 1; overflow: hidden; text-overflow: ellipsis; }
+    .nav-item .badge {
+      background: #800000; color: #fff; font-size: 9px; font-weight: bold;
+      padding: 0 3px; margin-left: auto; flex-shrink: 0;
+    }
+    .nav-item .ndot {
+      width: 6px; height: 6px; border-radius: 50%; flex-shrink: 0; margin-left: auto;
+    }
+
+    /* MAIN */
+    #main { flex: 1; display: flex; flex-direction: column; overflow: hidden; background: #c0c0c0; position: relative; }
+    #chatHeader {
+      padding: 3px 6px; border-bottom: 1px solid #808080;
+      display: none; align-items: center; gap: 6px;
+      font-size: 11px; font-weight: bold; background: #c0c0c0; flex-shrink: 0;
+    }
+    #chatMeta { font-weight: normal; color: #444; }
+    #inviteBtn { margin-left: auto; min-width: 0; padding: 1px 8px; font-size: 10px; }
+    #noChannel {
+      flex: 1; display: flex; align-items: center; justify-content: center;
+      color: #808080; font-size: 11px;
+    }
+    #messages {
+      flex: 1; overflow-y: auto; padding: 2px 4px; display: none;
+      background: #fff; margin: 4px;
+      box-shadow: inset -1px -1px #fff, inset 1px 1px #0a0a0a,
+                  inset -2px -2px #dfdfdf, inset 2px 2px #808080;
+    }
+    .irc-line {
+      font-family: 'Lucida Console', 'Courier New', monospace; font-size: 11px;
+      line-height: 1.5; padding: 0 2px; white-space: pre-wrap; word-break: break-word;
+    }
+    .irc-line:hover { background: #e8e8e8; }
+    .irc-time      { color: #808080; }
+    .irc-nick-other{ color: #800000; font-weight: bold; }
+    .irc-nick-self { color: #000080; font-weight: bold; }
+    .irc-text      { color: #000; }
+    .irc-sys       { color: #808080; font-style: italic; }
+
+    /* INPUT */
+    #inputWrap {
+      border-top: 1px solid #808080; padding: 4px; display: none;
+      gap: 4px; align-items: center; background: #c0c0c0; flex-shrink: 0;
+    }
+    #emojiToggle { min-width: 0; padding: 2px 5px; font-size: 13px; line-height: 1; }
+    #emojiPanel {
+      position: absolute; bottom: 34px; left: 8px; background: #c0c0c0;
+      display: none; flex-wrap: wrap; gap: 1px; max-width: 220px; z-index: 50; padding: 4px;
+      box-shadow: inset -1px -1px #0a0a0a, inset 1px 1px #fff,
+                  inset -2px -2px #808080, inset 2px 2px #dfdfdf;
+    }
+    #emojiPanel button { min-width: 0; padding: 2px 3px; font-size: 14px; line-height: 1; }
+    #msgInput { flex: 1; padding: 3px 4px; height: 22px; }
+    #sendBtn  { min-width: 60px; padding: 3px 10px; }
+
+    /* STATUS BAR */
+    #statusBar {
+      border-top: 1px solid #fff; background: #c0c0c0;
+      padding: 2px 4px; font-size: 11px; display: flex; gap: 4px; flex-shrink: 0;
+    }
+    .status-cell {
+      padding: 1px 6px;
+      box-shadow: inset -1px -1px #fff, inset 1px 1px #808080;
+    }
+    #statusOnline { min-width: 90px; }
+
+    /* MODAL */
+    #overlay {
+      display: none; position: fixed; inset: 0; background: rgba(0,0,0,.15);
+      z-index: 200; align-items: center; justify-content: center;
+    }
+    #modalBox {
+      min-width: 280px; max-width: 360px; background: #c0c0c0;
+      box-shadow: inset -1px -1px #0a0a0a, inset 1px 1px #fff,
+                  inset -2px -2px #808080, inset 2px 2px #dfdfdf;
+    }
+    #mBody { padding: 12px 16px; display: flex; flex-direction: column; gap: 8px; font-size: 11px; }
+    .m-input {
+      width: 100%; padding: 3px 4px; height: 22px;
+      font-family: 'MS Sans Serif', Arial, sans-serif; font-size: 11px;
+      background: #fff; border: none; outline: none; user-select: text;
+      box-shadow: inset -1px -1px #fff, inset 1px 1px #0a0a0a,
+                  inset -2px -2px #dfdfdf, inset 2px 2px #808080;
+    }
+    #mActions { border-top: 1px solid #808080; padding: 8px; display: flex; justify-content: center; gap: 8px; }
+    .note     { color: #444; font-size: 11px; line-height: 1.4; }
+    .code-box {
+      background: #fff; padding: 6px;
+      font-family: 'Lucida Console', monospace; font-size: 16px;
+      letter-spacing: .2em; text-align: center; color: #000080;
+      box-shadow: inset -1px -1px #fff, inset 1px 1px #0a0a0a,
+                  inset -2px -2px #dfdfdf, inset 2px 2px #808080;
+    }
+    .peer-list { display: flex; flex-direction: column; max-height: 180px; overflow-y: auto; }
+    .peer-opt  {
+      padding: 3px 6px; cursor: default; display: flex; align-items: center;
+      gap: 6px; font-size: 11px;
+    }
+    .peer-opt:hover { background: #000080; color: #fff; }
+    .peer-opt .dot { width: 7px; height: 7px; border-radius: 50%; background: #008000; flex-shrink: 0; }
+    .sep { height: 1px; background: #808080; margin: 2px 0; }
+
+    ::-webkit-scrollbar { width: 16px; }
+    ::-webkit-scrollbar-track { background: #c0c0c0; }
+    ::-webkit-scrollbar-thumb {
+      background: #c0c0c0;
+      box-shadow: inset -1px -1px #0a0a0a, inset 1px 1px #fff,
+                  inset -2px -2px #808080, inset 2px 2px #dfdfdf;
+    }
+    ::-webkit-scrollbar-button {
+      background: #c0c0c0; height: 16px;
+      box-shadow: inset -1px -1px #0a0a0a, inset 1px 1px #fff,
+                  inset -2px -2px #808080, inset 2px 2px #dfdfdf;
+    }
+  </style>
+</head>
+<body>
+
+<!-- ── LOBBY ── -->
+<div id="lobby">
+  <div id="lobbyWin">
+    <div class="titlebar">
+      <span class="tb-icon">💬</span>
+      <span class="tb-title">NetChat v1.0 — Connect</span>
+    </div>
+
+    <!-- Welcome back (shown if saved name found) -->
+    <div id="welcomePanel">
+      <div class="lby-body">
+        <p>Welcome back to NetChat!</p>
+        <div id="welcomeCard">
+          <div id="welcomeName"></div>
+          <div id="welcomeId"></div>
+        </div>
+        <button id="switchLink" onclick="showNewUserPanel()">▸ Sign in as different user</button>
+      </div>
+      <div class="lby-footer">
+        <button id="continueBtn" style="min-width:100px">Connect</button>
+      </div>
+    </div>
+
+    <!-- New / switch user form -->
+    <div id="newUserPanel">
+      <div class="lby-body">
+        <p>Enter your username to join NetChat.</p>
+        <div class="lby-row">
+          <label for="unameIn">User Name:</label>
+          <input id="unameIn" type="text" maxlength="32" autocomplete="off" spellcheck="false"/>
+        </div>
+        <span class="lby-idnote" id="lobbyIdNote"></span>
+        <span id="lobbyErr"></span>
+      </div>
+      <div class="lby-footer">
+        <button id="joinBtn" style="min-width:80px">OK</button>
+        <button onclick="showWelcomePanel()" id="cancelNewUser" style="min-width:80px;display:none">Cancel</button>
+      </div>
+    </div>
+  </div>
+</div>
+
+<!-- ── APP ── -->
+<div id="app">
+  <div class="titlebar">
+    <span class="tb-icon">💬</span>
+    <span class="tb-title">NetChat v1.0</span>
+    <button class="tb-btn">_</button>
+    <button class="tb-btn">□</button>
+    <button class="tb-btn" id="leaveBtn">×</button>
+  </div>
+
+  <div id="appBody">
+    <!-- Sidebar -->
+    <div id="sidebar">
+      <div id="userBar">
+        <div id="userBarTop">
+          <div class="online-dot"></div>
+          <span id="myName"></span>
+        </div>
+        <div id="myIdLabel"></div>
+      </div>
+
+      <div class="sec-header">
+        <span>Rooms</span>
+        <button class="small tb-btn" id="createRoomBtn" title="Create room">+</button>
+        <button class="small tb-btn" id="joinRoomBtn" title="Join by code">↗</button>
+      </div>
+      <div id="roomItems"></div>
+      <div class="sep"></div>
+      <div class="sec-header">
+        <span>Direct Messages</span>
+        <button class="small tb-btn" id="addDmBtn" title="New DM">+</button>
+      </div>
+      <div id="dmItems"></div>
+    </div>
+
+    <!-- Main -->
+    <div id="main">
+      <div id="chatHeader">
+        <span id="chatName"></span>
+        <span id="chatMeta"></span>
+        <button id="inviteBtn" style="display:none">Invite</button>
+      </div>
+      <div id="noChannel">← Select a room or direct message</div>
+      <div id="messages"></div>
+      <div id="inputWrap">
+        <div id="emojiPanel"></div>
+        <button id="emojiToggle" title="Emoticons">☺</button>
+        <input id="msgInput" type="text" placeholder="Type message and press Enter..." autocomplete="off" spellcheck="false"/>
+        <button id="sendBtn">Send</button>
+      </div>
+    </div>
+  </div>
+
+  <div id="statusBar">
+    <span class="status-cell" id="statusLeft">Ready</span>
+    <span class="status-cell" id="statusOnline">1 online</span>
+    <span class="status-cell" style="flex:1">NetChat v1.0 · P2P · No server</span>
+  </div>
+</div>
+
+<!-- ── MODAL ── -->
+<div id="overlay">
+  <div id="modalBox">
+    <div class="titlebar">
+      <span class="tb-icon">💬</span>
+      <span class="tb-title" id="mTitle">Dialog</span>
+      <button class="tb-btn" id="mCloseBtn">×</button>
+    </div>
+    <div id="mBody"></div>
+    <div id="mActions">
+      <button id="mCancel">Cancel</button>
+      <button id="mOK">OK</button>
+    </div>
+  </div>
+</div>
+
+<script type="module">
+import { joinRoom } from 'https://esm.sh/trystero@0.21.0/torrent';
+
+// ── Identity ──────────────────────────────────────────────────
+const MY_ID = (() => {
+  let id = localStorage.getItem('nc-id');
+  if (!id) { id = crypto.randomUUID(); localStorage.setItem('nc-id', id); }
+  return id;
+})();
+const SHORT_ID = MY_ID.slice(0, 8);
+
+const APP_ID      = 'netchat-v2';
+const PRESENCE_ID = 'netchat-presence';
+const MAX_LOG     = 300;
+
+let myName = '';
+
+// ── State ─────────────────────────────────────────────────────
+let presenceRoom = null, pSendId = null, pSendDM = null;
+let onlinePeers  = {};
+let ncToTrystero = {};
+let rooms  = {};
+let dms    = {};
+let active = null;
+let unread = {};
+
+// ── Persistence ───────────────────────────────────────────────
+function lsSave(key, val) { try { localStorage.setItem(key, JSON.stringify(val)); } catch {} }
+function lsLoad(key, def) { try { const v = localStorage.getItem(key); return v != null ? JSON.parse(v) : def; } catch { return def; } }
+
+function saveProfile()  { lsSave('nc-name', myName); }
+function saveRooms()    { lsSave('nc-rooms', Object.entries(rooms).map(([code, r]) => ({ code, name: r.name, isAdmin: r.isAdmin }))); }
+function saveDMs()      { lsSave('nc-dms',   Object.entries(dms).map(([ncId, dm]) => ({ ncId, name: dm.name }))); }
+function saveMsgs(type, id, msgs) { lsSave(`nc-log-${type}-${id}`, msgs.slice(-MAX_LOG)); }
+function loadMsgs(type, id)       { return lsLoad(`nc-log-${type}-${id}`, []); }
+
+// ── DOM ───────────────────────────────────────────────────────
+const $ = id => document.getElementById(id);
+const lobby        = $('lobby');
+const app          = $('app');
+const welcomePanel = $('welcomePanel');
+const newUserPanel = $('newUserPanel');
+const welcomeName  = $('welcomeName');
+const welcomeId    = $('welcomeId');
+const continueBtn  = $('continueBtn');
+const cancelNewUser= $('cancelNewUser');
+const unameIn      = $('unameIn');
+const joinBtn      = $('joinBtn');
+const lobbyErr     = $('lobbyErr');
+const lobbyIdNote  = $('lobbyIdNote');
+const myNameEl     = $('myName');
+const myIdLabel    = $('myIdLabel');
+const leaveBtn     = $('leaveBtn');
+const roomItems    = $('roomItems');
+const dmItems      = $('dmItems');
+const createRoom   = $('createRoomBtn');
+const joinRoom_    = $('joinRoomBtn');
+const addDm        = $('addDmBtn');
+const chatHeader   = $('chatHeader');
+const chatNameEl   = $('chatName');
+const chatMetaEl   = $('chatMeta');
+const inviteBtn    = $('inviteBtn');
+const noChannel    = $('noChannel');
+const messages     = $('messages');
+const inputWrap    = $('inputWrap');
+const emojiToggle  = $('emojiToggle');
+const emojiPanel   = $('emojiPanel');
+const msgInput     = $('msgInput');
+const sendBtn      = $('sendBtn');
+const overlay      = $('overlay');
+const mTitle       = $('mTitle');
+const mBody        = $('mBody');
+const mOK          = $('mOK');
+const mCancel      = $('mCancel');
+const statusLeft   = $('statusLeft');
+const statusOnline = $('statusOnline');
+
+// ── Lobby init ────────────────────────────────────────────────
+const savedName = lsLoad('nc-name', null);
+lobbyIdNote.textContent = `Your ID: ${SHORT_ID}`;
+
+if (savedName) {
+  welcomeName.textContent = savedName;
+  welcomeId.textContent   = `ID: ${SHORT_ID}`;
+  showWelcomePanel();
+} else {
+  showNewUserPanel();
+}
+
+function showWelcomePanel() {
+  if (!savedName && !myName) { showNewUserPanel(); return; }
+  welcomePanel.style.display = 'block';
+  newUserPanel.style.display = 'none';
+  cancelNewUser.style.display = 'none';
+}
+function showNewUserPanel() {
+  welcomePanel.style.display = 'none';
+  newUserPanel.style.display = 'block';
+  if (savedName) cancelNewUser.style.display = '';
+  setTimeout(() => unameIn.focus(), 50);
+}
+window.showWelcomePanel = showWelcomePanel;
+window.showNewUserPanel = showNewUserPanel;
+
+continueBtn.onclick = () => {
+  const name = savedName || myName;
+  if (!name) { showNewUserPanel(); return; }
+  enterApp(name);
+};
+
+joinBtn.onclick = tryJoin;
+unameIn.addEventListener('keydown', e => { if (e.key === 'Enter') tryJoin(); });
+
+function tryJoin() {
+  const name = unameIn.value.trim();
+  if (!name) { lobbyErr.textContent = 'Please enter a username.'; lobbyErr.style.display = ''; return; }
+  enterApp(name);
+}
+
+function enterApp(name) {
+  myName = name.slice(0, 32);
+  saveProfile();
+  myNameEl.textContent = myName;
+  myIdLabel.textContent = `ID: ${SHORT_ID}`;
+  lobby.style.display = 'none';
+  app.style.display = 'flex';
+  statusLeft.textContent = `Signed in as ${myName}`;
+  initPresence();
+  loadSavedState();
+}
+
+// ── Load saved state ──────────────────────────────────────────
+function loadSavedState() {
+  // Restore DM contacts (offline until presence connects them)
+  const savedDMs = lsLoad('nc-dms', []);
+  savedDMs.forEach(({ ncId, name }) => {
+    if (!dms[ncId]) {
+      dms[ncId] = { tId: null, name, messages: loadMsgs('dm', ncId) };
+    }
+  });
+  renderDMs();
+
+  // Restore joined rooms
+  const savedRooms = lsLoad('nc-rooms', []);
+  savedRooms.forEach(({ code, name, isAdmin }) => {
+    doJoinRoom(code, name, isAdmin, true); // silent = no invite modal
+  });
+}
+
+// ── Leave ─────────────────────────────────────────────────────
+leaveBtn.onclick = () => {
+  presenceRoom?.leave();
+  Object.values(rooms).forEach(r => r.room.leave());
+  presenceRoom = null; rooms = {}; dms = {}; onlinePeers = {}; ncToTrystero = {};
+  active = null; unread = {};
+  roomItems.innerHTML = ''; dmItems.innerHTML = '';
+  messages.innerHTML = '';
+  showEmpty();
+  app.style.display = 'none';
+  // Refresh lobby welcome screen with updated saved name
+  if (savedName || myName) {
+    welcomeName.textContent = myName || savedName;
+    welcomeId.textContent   = `ID: ${SHORT_ID}`;
+    showWelcomePanel();
+  }
+  lobby.style.display = 'flex';
+};
+
+// ── Presence ──────────────────────────────────────────────────
+function initPresence() {
+  presenceRoom = joinRoom({ appId: APP_ID }, PRESENCE_ID);
+  const [sendId, recvId]         = presenceRoom.makeAction('id');
+  const [sendDM, recvPresenceDM] = presenceRoom.makeAction('dm');
+  pSendId = sendId;
+  pSendDM = sendDM;
+
+  presenceRoom.onPeerJoin(tId => {
+    pSendId({ name: myName, ncId: MY_ID }, tId);
+    updateOnlineCount();
+  });
+
+  presenceRoom.onPeerLeave(tId => {
+    const peer = onlinePeers[tId];
+    if (peer) {
+      const dm = dms[peer.ncId];
+      if (dm) { dm.tId = null; pushMsg('dm', peer.ncId, { sys: true, body: `${peer.name} disconnected` }); }
+      delete ncToTrystero[peer.ncId];
+      delete onlinePeers[tId];
+      renderDMs();
+    }
+    updateOnlineCount();
+  });
+
+  recvId(({ name, ncId }, tId) => {
+    onlinePeers[tId] = { name, ncId };
+    ncToTrystero[ncId] = tId;
+    if (dms[ncId]) { dms[ncId].tId = tId; dms[ncId].name = name; renderDMs(); }
+    updateOnlineCount();
+  });
+
+  recvPresenceDM(({ fromNcId, body, time }, tId) => {
+    const senderName = onlinePeers[tId]?.name || 'Unknown';
+    if (!dms[fromNcId]) {
+      dms[fromNcId] = { tId, name: senderName, messages: loadMsgs('dm', fromNcId) };
+      saveDMs();
+      renderDMs();
+    }
+    pushMsg('dm', fromNcId, { author: senderName, body, time, self: false });
+    if (!isActive('dm', fromNcId)) bump(`dm:${fromNcId}`);
+  });
+}
+
+function updateOnlineCount() {
+  const n = Object.keys(onlinePeers).length + 1;
+  statusOnline.textContent = `${n} user${n !== 1 ? 's' : ''} online`;
+}
+
+// ── Emoji ─────────────────────────────────────────────────────
+['😀','😂','😍','🥰','😎','🤔','😭','😡','🤯','🥳',
+ '👍','👎','👋','🙌','🤝','❤️','🔥','✅','❌','⭐',
+ '💯','🎉','🚀','💡','🛠️','📢','🤖','👀','💬','🌐'
+].forEach(e => {
+  const b = document.createElement('button');
+  b.textContent = e;
+  b.onclick = () => { insert(msgInput, e); emojiPanel.style.display = 'none'; msgInput.focus(); };
+  emojiPanel.appendChild(b);
+});
+emojiToggle.onclick = ev => {
+  ev.stopPropagation();
+  emojiPanel.style.display = emojiPanel.style.display === 'flex' ? 'none' : 'flex';
+};
+document.addEventListener('click', () => { emojiPanel.style.display = 'none'; });
+emojiPanel.addEventListener('click', e => e.stopPropagation());
+function insert(el, text) {
+  const s = el.selectionStart, e2 = el.selectionEnd;
+  el.value = el.value.slice(0, s) + text + el.value.slice(e2);
+  el.selectionStart = el.selectionEnd = s + text.length;
+}
+
+// ── Modal ─────────────────────────────────────────────────────
+function modal({ title, body, ok = 'OK', cancel = 'Cancel', noCancel, onOK, onCancel }) {
+  mTitle.textContent = title;
+  mBody.innerHTML = '';
+  typeof body === 'string' ? (mBody.innerHTML = body) : mBody.appendChild(body);
+  mOK.textContent = ok;
+  mCancel.textContent = cancel;
+  mCancel.style.display = noCancel ? 'none' : '';
+  overlay.style.display = 'flex';
+  mOK.onclick     = () => { closeModal(); onOK?.(); };
+  mCancel.onclick = () => { closeModal(); onCancel?.(); };
+}
+function closeModal() { overlay.style.display = 'none'; }
+$('mCloseBtn').onclick = closeModal;
+overlay.addEventListener('click', e => { if (e.target === overlay) closeModal(); });
+
+// ── Rooms ─────────────────────────────────────────────────────
+createRoom.onclick = () => {
+  const div = document.createElement('div');
+  div.innerHTML = `<label style="display:block;margin-bottom:4px">Room Name:</label>
+    <input class="m-input" id="rName" type="text" maxlength="48" placeholder="e.g. general"/>
+    <p class="note" style="margin-top:6px">You'll get an invite code to share after creation.</p>`;
+  modal({
+    title: 'Create Room', body: div, ok: 'Create',
+    onOK: () => {
+      const name = document.getElementById('rName')?.value.trim();
+      if (!name) return;
+      doJoinRoom(genCode(), name, true, false);
+    }
+  });
+  setTimeout(() => document.getElementById('rName')?.focus(), 50);
+};
+
+joinRoom_.onclick = () => {
+  const div = document.createElement('div');
+  div.innerHTML = `<label style="display:block;margin-bottom:4px">Invite Code:</label>
+    <input class="m-input" id="rCode" type="text" maxlength="10" placeholder="e.g. AB3X7K"
+     style="text-transform:uppercase;letter-spacing:.15em;font-family:monospace"/>`;
+  modal({
+    title: 'Join Room', body: div, ok: 'Join',
+    onOK: () => {
+      const code = document.getElementById('rCode')?.value.trim().toUpperCase();
+      if (!code) return;
+      if (rooms[code]) { setActive('room', code); return; }
+      doJoinRoom(code, code, false, false);
+    }
+  });
+  setTimeout(() => document.getElementById('rCode')?.focus(), 50);
+};
+
+function doJoinRoom(code, name, isAdmin, silent) {
+  if (rooms[code]) { if (!silent) setActive('room', code); return; }
+
+  const room = joinRoom({ appId: APP_ID }, `room:${code}`);
+  const [send, recv]         = room.makeAction('msg');
+  const [sendName, recvName] = room.makeAction('id');
+
+  rooms[code] = { room, send, peers: {}, messages: loadMsgs('room', code), name, isAdmin };
+  saveRooms();
+  renderRooms();
+
+  room.onPeerJoin(tId => { sendName({ name: myName, ncId: MY_ID }, tId); refreshHeader(); });
+  room.onPeerLeave(tId => {
+    const p = rooms[code].peers[tId];
+    if (p) pushMsg('room', code, { sys: true, body: `${p.name} has left ${name}` });
+    delete rooms[code].peers[tId];
+    refreshHeader(); renderRooms();
+  });
+  recvName(({ name: n, ncId }, tId) => {
+    if (rooms[code].peers[tId]) return;
+    rooms[code].peers[tId] = { name: n, ncId };
+    pushMsg('room', code, { sys: true, body: `${n} has joined ${name}` });
+    refreshHeader(); renderRooms();
+  });
+  recv(({ author, body, time }) => {
+    pushMsg('room', code, { author, body, time, self: false });
+    if (!isActive('room', code)) bump(`room:${code}`);
+  });
+
+  if (!silent) setActive('room', code);
+
+  if (isAdmin && !silent) {
+    setTimeout(() => {
+      const div = document.createElement('div');
+      div.innerHTML = `<div class="code-box">${code}</div>
+        <p class="note" style="margin-top:8px">Share this code. Others join via the ↗ button.</p>`;
+      modal({ title: `Room Created: ${name}`, body: div, ok: 'Done', noCancel: true });
+    }, 80);
+  }
+}
+
+inviteBtn.onclick = () => {
+  if (!active || active.type !== 'room') return;
+  const r = rooms[active.id];
+  const div = document.createElement('div');
+  div.innerHTML = `<div class="code-box">${active.id}</div>
+    <p class="note" style="margin-top:8px">Others join <strong>${r?.name}</strong> via the ↗ button.</p>`;
+  modal({
+    title: 'Invite Code', body: div, ok: 'Copy to Clipboard', noCancel: true,
+    onOK: () => navigator.clipboard?.writeText(active.id).catch(() => {})
+  });
+};
+
+function genCode() {
+  const a = 'ABCDEFGHJKLMNPQRSTUVWXYZ23456789';
+  return Array.from(crypto.getRandomValues(new Uint8Array(6))).map(b => a[b % a.length]).join('');
+}
+
+// ── DMs ───────────────────────────────────────────────────────
+addDm.onclick = () => {
+  const peers = Object.values(onlinePeers);
+  if (peers.length === 0) {
+    modal({ title: 'No Users Online', noCancel: true, ok: 'OK',
+      body: '<p class="note" style="line-height:1.6">No other users are online right now.<br>Both you and the recipient must have NetChat open.</p>' });
+    return;
+  }
+  const list = document.createElement('div');
+  list.className = 'peer-list';
+  peers.forEach(({ name, ncId }) => {
+    const el = document.createElement('div');
+    el.className = 'peer-opt';
+    el.innerHTML = `<div class="dot"></div><span>${esc(name)}</span>`;
+    el.onclick = () => { closeModal(); startDM(ncId, name); };
+    list.appendChild(el);
+  });
+  const wrap = document.createElement('div');
+  wrap.innerHTML = '<p class="note" style="margin-bottom:6px">Select a user to message:</p>';
+  wrap.appendChild(list);
+  modal({ title: 'New Direct Message', body: wrap, ok: 'Close', noCancel: true, onOK: closeModal });
+};
+
+function startDM(ncId, name) {
+  if (!dms[ncId]) {
+    dms[ncId] = { tId: ncToTrystero[ncId] || null, name, messages: loadMsgs('dm', ncId) };
+    saveDMs();
+  }
+  setActive('dm', ncId);
+  renderDMs();
+}
+
+// ── Send ──────────────────────────────────────────────────────
+sendBtn.onclick = doSend;
+msgInput.addEventListener('keydown', e => { if (e.key === 'Enter') { e.preventDefault(); doSend(); } });
+
+function doSend() {
+  const body = msgInput.value.trim();
+  if (!body || !active) return;
+  msgInput.value = '';
+  const time = Date.now();
+
+  if (active.type === 'room') {
+    const r = rooms[active.id];
+    if (!r) return;
+    r.send({ author: myName, body, time });
+    pushMsg('room', active.id, { author: myName, body, time, self: true });
+  } else {
+    const dm = dms[active.id];
+    if (!dm) return;
+    if (!dm.tId) {
+      pushMsg('dm', active.id, { sys: true, body: 'User is offline — message not delivered.' });
+      return;
+    }
+    pSendDM({ fromNcId: MY_ID, body, time }, dm.tId);
+    pushMsg('dm', active.id, { author: myName, body, time, self: true });
+  }
+}
+
+// ── Active channel ────────────────────────────────────────────
+function setActive(type, id) {
+  active = { type, id };
+  unread[`${type}:${id}`] = 0;
+  renderRooms(); renderDMs(); updateHeader(); renderMessages();
+  setTimeout(() => msgInput.focus(), 50);
+}
+function isActive(type, id) { return active?.type === type && active?.id === id; }
+
+// ── Messages ──────────────────────────────────────────────────
+function pushMsg(type, id, msg) {
+  const store = type === 'room' ? rooms[id] : dms[id];
+  if (!store) return;
+  store.messages.push(msg);
+  saveMsgs(type, id, store.messages);
+  if (isActive(type, id)) appendMsg(msg);
+}
+
+function renderMessages() {
+  messages.innerHTML = '';
+  if (!active) return;
+  const store = active.type === 'room' ? rooms[active.id] : dms[active.id];
+  store?.messages.forEach(appendMsg);
+  scrollBot();
+}
+
+function appendMsg(msg) {
+  const line = document.createElement('div');
+  line.className = 'irc-line';
+  if (msg.sys) {
+    line.className += ' irc-sys';
+    line.textContent = `*** ${msg.body}`;
+  } else {
+    const time = document.createElement('span');
+    time.className = 'irc-time';
+    time.textContent = `[${fmt(msg.time)}] `;
+    const nick = document.createElement('span');
+    nick.className = msg.self ? 'irc-nick-self' : 'irc-nick-other';
+    nick.textContent = `<${msg.author}> `;
+    const text = document.createElement('span');
+    text.className = 'irc-text';
+    text.textContent = msg.body;
+    line.append(time, nick, text);
+  }
+  messages.appendChild(line);
+  scrollBot();
+}
+
+function scrollBot() { messages.scrollTop = messages.scrollHeight; }
+function fmt(ts)     { return new Date(ts).toLocaleTimeString([], { hour: '2-digit', minute: '2-digit' }); }
+function esc(s)      { return s.replace(/&/g,'&amp;').replace(/</g,'&lt;').replace(/>/g,'&gt;'); }
+
+// ── Sidebar ───────────────────────────────────────────────────
+function renderRooms() {
+  roomItems.innerHTML = '';
+  Object.entries(rooms).forEach(([code, r]) => {
+    const el = navItem(`# ${r.name}`, isActive('room', code), unread[`room:${code}`]);
+    el.onclick = () => setActive('room', code);
+    roomItems.appendChild(el);
+  });
+}
+
+function renderDMs() {
+  dmItems.innerHTML = '';
+  Object.entries(dms).forEach(([ncId, dm]) => {
+    const el = navItem(`@ ${dm.name}`, isActive('dm', ncId), unread[`dm:${ncId}`], !!dm.tId);
+    el.onclick = () => setActive('dm', ncId);
+    dmItems.appendChild(el);
+  });
+}
+
+function navItem(label, isact, badge, online) {
+  const el = document.createElement('div');
+  el.className = 'nav-item' + (isact ? ' active' : '');
+  const lspan = document.createElement('span');
+  lspan.className = 'label';
+  lspan.textContent = label;
+  el.appendChild(lspan);
+  if (online !== undefined) {
+    const dot = document.createElement('div');
+    dot.className = 'ndot';
+    dot.style.background  = online ? '#00c000' : '#808080';
+    dot.style.boxShadow   = online ? '0 0 0 1px #006000' : '0 0 0 1px #505050';
+    dot.style.marginLeft  = 'auto';
+    el.appendChild(dot);
+  }
+  if (badge) {
+    const b = document.createElement('span');
+    b.className = 'badge';
+    b.textContent = badge;
+    el.appendChild(b);
+  }
+  return el;
+}
+
+// ── Header ────────────────────────────────────────────────────
+function updateHeader() {
+  if (!active) { showEmpty(); return; }
+  chatHeader.style.display = 'flex';
+  noChannel.style.display  = 'none';
+  messages.style.display   = 'block';
+  inputWrap.style.display  = 'flex';
+
+  if (active.type === 'room') {
+    const r = rooms[active.id];
+    chatNameEl.textContent = `# ${r?.name || active.id}`;
+    const n = Object.keys(r?.peers || {}).length + 1;
+    chatMetaEl.textContent = `[${n} member${n !== 1 ? 's' : ''}]`;
+    inviteBtn.style.display = '';
+  } else {
+    const dm = dms[active.id];
+    chatNameEl.textContent  = `@ ${dm?.name || '?'}`;
+    chatMetaEl.textContent  = dm?.tId ? '[online]' : '[offline]';
+    inviteBtn.style.display = 'none';
+  }
+}
+
+function refreshHeader() { if (active) updateHeader(); renderRooms(); }
+
+function showEmpty() {
+  chatHeader.style.display = 'none';
+  noChannel.style.display  = 'flex';
+  messages.style.display   = 'none';
+  inputWrap.style.display  = 'none';
+}
+
+function bump(key) {
+  unread[key] = (unread[key] || 0) + 1;
+  renderRooms(); renderDMs();
+}
+</script>
+</body>
+</html>
