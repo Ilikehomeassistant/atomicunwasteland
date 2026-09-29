@@ -518,6 +518,9 @@ function enterApp(name) {
 }
 
 // ── Load saved state ──────────────────────────────────────────
+const DEFAULT_ROOM_CODE = 'ATOMICUNWASTELAND';
+const DEFAULT_ROOM_NAME = 'atomicunwasteland';
+
 function loadSavedState() {
   // Restore DM contacts (offline until presence connects them)
   const savedDMs = lsLoad('nc-dms', []);
@@ -533,6 +536,14 @@ function loadSavedState() {
   savedRooms.forEach(({ code, name, isAdmin }) => {
     doJoinRoom(code, name, isAdmin, true); // silent = no invite modal
   });
+
+  // Every visitor on the site build lands in the same shared room automatically.
+  if (!rooms[DEFAULT_ROOM_CODE]) {
+    doJoinRoom(DEFAULT_ROOM_CODE, DEFAULT_ROOM_NAME, false, true);
+  }
+  if (!active) {
+    setActive('room', DEFAULT_ROOM_CODE);
+  }
 }
 
 // ── Leave ─────────────────────────────────────────────────────
