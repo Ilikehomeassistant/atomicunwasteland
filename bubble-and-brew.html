@@ -24,6 +24,13 @@
     background: radial-gradient(ellipse at center, #2a1650 0%, #1b1330 45%, #120d1e 85%);
   }
   canvas { image-rendering: pixelated; image-rendering: crisp-edges; display: block; touch-action: none; outline: none; }
+  #mute {
+    position: fixed; width: 36px; height: 36px; padding: 0; margin: 0;
+    display: flex; align-items: center; justify-content: center;
+    background: rgba(20, 14, 32, 0.72); border: 2px solid #4a3d6e; border-radius: 6px;
+    cursor: pointer; touch-action: manipulation; -webkit-tap-highlight-color: transparent; z-index: 2;
+  }
+  #mute:active { background: rgba(60, 44, 96, 0.9); }
   #status { position: fixed; inset: 0; display: flex; align-items: center; justify-content: center; color: #b98cf5; font: 16px sans-serif; }
 </style>
 </head>
@@ -1321,12 +1328,39 @@
     try { await Promise.all([document.fonts.load("400 20px Silkscreen"), document.fonts.load("700 20px Silkscreen")]); } catch (e) { /* embedded font failed to parse: fall back silently */ }
     status.remove();
 
+    // On its own page (phones / installed) there is no keyboard for M, so a speaker button in the top-right corner
+    // (over the empty ceiling the tall layout opens up) mutes everything, music included. Not shown in the site's iframe.
+    const SPEAKER = '<rect x="1" y="4" width="3" height="4"/><rect x="4" y="3" width="1" height="6"/><rect x="5" y="2" width="1" height="8"/><rect x="6" y="1" width="1" height="10"/>';
+    const WAVES = '<rect x="8" y="5" width="1" height="2"/><rect x="9" y="3" width="1" height="1"/><rect x="9" y="8" width="1" height="1"/><rect x="10" y="4" width="1" height="4"/>';
+    const CROSS = '<rect x="8" y="4" width="1" height="1"/><rect x="9" y="5" width="1" height="1"/><rect x="10" y="6" width="1" height="1"/><rect x="11" y="7" width="1" height="1"/><rect x="11" y="4" width="1" height="1"/><rect x="10" y="5" width="1" height="1"/><rect x="9" y="6" width="1" height="1"/><rect x="8" y="7" width="1" height="1"/>';
+    let muteBtn = null, shownMuted = null;
+    const syncMuteBtn = () => {
+      if (!muteBtn || shownMuted === game.muted) return;
+      shownMuted = game.muted;
+      muteBtn.innerHTML = `<svg viewBox="0 0 12 12" width="22" height="22" shape-rendering="crispEdges" fill="${game.muted ? "#e8574c" : "#f4ead0"}">${SPEAKER}${game.muted ? CROSS : WAVES}</svg>`;
+      muteBtn.setAttribute("aria-label", game.muted ? "Turn sound on" : "Mute all sound");
+      muteBtn.title = muteBtn.getAttribute("aria-label");
+    };
+    if (window.self === window.top) {
+      muteBtn = document.createElement("button");
+      muteBtn.id = "mute";
+      muteBtn.type = "button";
+      muteBtn.addEventListener("click", (e) => { e.stopPropagation(); audio.unlock(); game.key("m"); syncMuteBtn(); });
+      document.body.appendChild(muteBtn);
+      syncMuteBtn();
+    }
+
     let dpr = window.devicePixelRatio || 1;
     // body padding = the safe-area insets (notch / home indicator), so the game never sits under them
     const fit = () => {
       dpr = window.devicePixelRatio || 1;
       const s = getComputedStyle(document.body), px = (v) => parseFloat(v) || 0;
       renderer.resize(window.innerWidth - px(s.paddingLeft) - px(s.paddingRight), window.innerHeight - px(s.paddingTop) - px(s.paddingBottom), dpr);
+      if (muteBtn) {                                   // pinned to the canvas's top-right corner
+        const r = view.getBoundingClientRect();
+        muteBtn.style.left = (r.right - 44) + "px";
+        muteBtn.style.top = (r.top + 8) + "px";
+      }
     };
     window.addEventListener("resize", fit);
     fit();
@@ -1377,6 +1411,7 @@
       last = now;
       game.update(dt);
       audio.handle(game);
+      syncMuteBtn();                                     // also follows the M key
       renderer.draw(game, mouse);
       requestAnimationFrame(frame);
     }
