@@ -223,6 +223,49 @@
         margin: 0 6px;
       }
 
+      .toolbar-scroll-80x15 {
+        background: #ece9d8;
+        box-shadow:
+          inset -1px -1px 0 #fff,
+          inset 1px 1px 0 #808080;
+        padding: 4px 0;
+        margin-bottom: 4px;
+      }
+      .toolbar-scroll-80x15 img {
+        height: 15px;
+        vertical-align: middle;
+        margin: 0 6px;
+      }
+
+      .toolbar-label {
+        background: linear-gradient(90deg, #000080, #1084d0);
+        color: #fff;
+        font-family: Tahoma, "MS Sans Serif", Geneva, sans-serif;
+        font-weight: bold;
+        font-size: 10px;
+        letter-spacing: .5px;
+        padding: 2px 6px;
+      }
+
+      /* ---- Net Neighbours: a floating window that snaps to the top of the main IE window by default ---- */
+      .neighbours-window {
+        position: fixed;
+        z-index: 9300;
+        background: #c0c0c0;
+        padding: 3px;
+        box-shadow:
+          inset -1px -1px 0 #0a0a0a,
+          inset 1px 1px 0 #fff,
+          inset -2px -2px 0 #808080,
+          inset 2px 2px 0 #dfdfdf,
+          4px 4px 10px rgba(0, 0, 0, 0.35);
+        font-family: Tahoma, "MS Sans Serif", Geneva, sans-serif;
+      }
+      .neighbours-window .win98-titlebar { cursor: grab; touch-action: none; user-select: none; }
+      .neighbours-window.dragging .win98-titlebar { cursor: grabbing; }
+      .neighbours-window .win98-btn { cursor: pointer; }
+      .neighbours-window .win98-toolbar-scroll { margin-bottom: 0; }
+
       /* ---- Bubble & Brew: a floating window that drags and snaps to screen edges, the IE window and Webamp ---- */
       .brew-window {
         position: fixed;
@@ -294,6 +337,7 @@
           <span>Help</span>
         </div>
 
+        <div class="toolbar-label">Pages</div>
         <div class="win98-toolbar-scroll">
           <marquee scrollamount="3">
             <a href="/devicelibrary"><img src="/icons/cooldevices.png" width="88" height="31" alt="device library"></a>
@@ -301,8 +345,14 @@
             <a href="https://atomicunwasteland.neocities.org/airlitepage.html"><img src="/icons/lite%20page.png" width="88" height="31" alt="lite page"></a>
             <a href="/hobbypage.html"><img src="/icons/myhobbies88x31.png" width="88" height="31" alt="my hobbies"></a>
             <a href="/blog.html"><img src="/icons/Rss_Feed_88x31.gif" width="88" height="31" alt="blog"></a>
-            <a href="/buttons.html"><img src="/icons/Hyperlinks88x31_1.gif" width="88" height="31" alt="hyperlinks"></a>
             <a href="/netchat.html"><img src="/icons/netchat88x31.gif" width="88" height="31" alt="netchat"></a>
+          </marquee>
+        </div>
+
+        <div class="toolbar-label">80x15</div>
+        <div class="toolbar-scroll-80x15">
+          <marquee scrollamount="3">
+            <a href="http://www.catb.org/hacker-emblem/"><img src="http://www.catb.org/hacker-emblem/hacker.png" width="80" height="15" alt="hacker emblem"></a>
           </marquee>
         </div>
 
@@ -409,6 +459,29 @@
         </div>
       </div>
       <div class="brew-body"><iframe id="brew-frame" data-src="bubble-and-brew.html" allow="autoplay" title="Bubble &amp; Brew" width="176" height="200" scrolling="no"></iframe></div>
+    </div>
+
+    <!-- ============ NET NEIGHBOURS WINDOW ============ -->
+    <div class="neighbours-window" id="neighbours-window" role="dialog" aria-label="Net Neighbours">
+      <div class="win98-titlebar" id="neighbours-titlebar">
+        <span class="win98-title">
+          <img src="https://win98icons.alexmeub.com/icons/png/network-0.png" alt="" style="width:16px;height:16px;" onerror="this.style.display='none'">
+          Net Neighbours
+        </span>
+        <div class="win98-titlebar-btns">
+          <div class="win98-btn" id="neighbours-close" title="Close">X</div>
+        </div>
+      </div>
+      <div class="win98-toolbar-scroll">
+        <marquee scrollamount="3">
+          <a href="https://danielthegoat.neocities.org"><img src="/icons/danielisthegoat88x31.png" width="88" height="31" alt="danielthegoat"></a>
+          <a href="https://thegreatmilkas.neocities.org/" target="_blank"><img src="https://thegreatmilkas.neocities.org/milkasbutton.png" width="88" height="31" style="image-rendering: pixelated" alt="the great milkas"></a>
+          <a href="https://lunasdiary.neocities.org"><img src="https://lunasdiary.neocities.org/buttons/button.gif" width="88" height="31" alt="luna's diary"></a>
+          <a href="https://konodioodaa.nekoweb.org"><img src="https://konodioodaa.nekoweb.org/pixil-frame-0%202.png" width="83" height="31" alt="konodioodaa"></a>
+          <a href="https://pottisplace.neocities.org"><img src="https://pottisplace.neocities.org/button.png" width="88" height="31" alt="potti's place"></a>
+          <a href="https://98.js.org/"><img src="/icons/win98start88x31.gif" width="88" height="31" alt="98.js.org"></a>
+        </marquee>
+      </div>
     </div>
 
     <script>
@@ -588,6 +661,91 @@
         // Webamp appears a moment later, and streams audio from archive.org that can take a long time (or never fully
         // "load"), so re-checking free space must not depend on window's load event - only on fixed delays
         [400, 1500, 3500].forEach(function (ms) { setTimeout(function () { if (!moved && !saved && win.classList.contains('open') && !maxed) defaultLayout(); }, ms); });
+      })();
+    </script>
+
+    <script>
+      // Net Neighbours window: same drag/snap idea as Bubble & Brew, but fixed-size (it just mirrors the width of
+      // the main IE window) and defaults to snapped flush against that window's top edge.
+      (function () {
+        var win = document.getElementById('neighbours-window');
+        var bar = document.getElementById('neighbours-titlebar');
+        var SNAP = 16, KEY = 'neighbours-window-pos-v1';
+        var drag = null, moved = false;
+
+        function clamp(v, lo, hi) { return Math.max(lo, Math.min(hi, v)); }
+        function ieRect() { var ie = document.querySelector('.win98-window'); return ie ? ie.getBoundingClientRect() : null; }
+        function targets() {
+          var out = [], ie = ieRect();
+          if (ie) out.push(ie);
+          document.querySelectorAll('#main-window, #equalizer-window, #playlist-window').forEach(function (el) {
+            var r = el.getBoundingClientRect();
+            if (r.width > 0 && r.height > 0) out.push(r);
+          });
+          return out;
+        }
+        function snap(x, y, w, h) {
+          var bx = null, by = null;
+          function tryX(c, t) { var d = Math.abs(c - x); if (d <= SNAP && (!bx || d < bx.d)) bx = { v: c, d: d, t: t }; }
+          function tryY(c, t) { var d = Math.abs(c - y); if (d <= SNAP && (!by || d < by.d)) by = { v: c, d: d, t: t }; }
+          tryX(0, null); tryX(window.innerWidth - w, null); tryY(0, null); tryY(window.innerHeight - h, null);
+          targets().forEach(function (t) {
+            if (y < t.bottom + SNAP && y + h > t.top - SNAP) { tryX(t.left - w, t); tryX(t.right, t); }
+            if (x < t.right + SNAP && x + w > t.left - SNAP) { tryY(t.top - h, t); tryY(t.bottom, t); }
+          });
+          var nx = bx ? bx.v : x, ny = by ? by.v : y;
+          if (bx && bx.t && !by) [bx.t.top, bx.t.bottom - h].forEach(function (c) { if (Math.abs(c - y) <= SNAP) ny = c; });
+          if (by && by.t && !bx) [by.t.left, by.t.right - w].forEach(function (c) { if (Math.abs(c - x) <= SNAP) nx = c; });
+          return { x: nx, y: ny };
+        }
+        function place(x, y) { win.style.left = Math.round(x) + 'px'; win.style.top = Math.round(y) + 'px'; }
+        function savePos() { try { localStorage.setItem(KEY, JSON.stringify({ x: win.offsetLeft, y: win.offsetTop })); } catch (e) {} }
+
+        function matchWidth() { var ie = ieRect(); if (ie) win.style.width = (ie.width - 6) + 'px'; }  /* -6: this window's own 3px+3px padding */
+        function defaultLayout() {
+          matchWidth();
+          var ie = ieRect(), h = win.offsetHeight;
+          if (ie) place(ie.left, ie.top - h);
+          else place(8, 8);
+        }
+
+        bar.addEventListener('pointerdown', function (e) {
+          if (e.button !== 0 || e.target.closest('.win98-btn')) return;
+          drag = { dx: e.clientX - win.offsetLeft, dy: e.clientY - win.offsetTop };
+          bar.setPointerCapture(e.pointerId);
+          win.classList.add('dragging');
+          e.preventDefault();
+        });
+        bar.addEventListener('pointermove', function (e) {
+          if (!drag) return;
+          var w = win.offsetWidth, h = win.offsetHeight;
+          var x = clamp(e.clientX - drag.dx, 0, window.innerWidth - w);
+          var y = clamp(e.clientY - drag.dy, 0, window.innerHeight - h);
+          if (!e.altKey) { var sn = snap(x, y, w, h); x = sn.x; y = sn.y; }
+          place(x, y);
+        });
+        function endDrag() {
+          if (!drag) return;
+          drag = null; moved = true;
+          win.classList.remove('dragging');
+          savePos();
+        }
+        bar.addEventListener('pointerup', endDrag);
+        bar.addEventListener('pointercancel', endDrag);
+
+        document.getElementById('neighbours-close').addEventListener('click', function () {
+          win.style.display = 'none';
+        });
+
+        window.addEventListener('resize', function () {
+          if (!moved) defaultLayout();
+          else matchWidth();
+        });
+
+        var saved = null;
+        try { saved = JSON.parse(localStorage.getItem(KEY)); } catch (e) { saved = null; }
+        if (saved) { moved = true; matchWidth(); place(saved.x, saved.y); }
+        else { defaultLayout(); }
       })();
     </script>
 
