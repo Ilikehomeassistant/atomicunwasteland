@@ -1,0 +1,107 @@
+<div class="cb-wrap">
+  <div class="cb-bar">
+    <span class="cb-name">rainbow.user.js</span>
+    <button type="button" class="cb-btn" id="cb-copy">Copy</button>
+  </div>
+  <pre class="cb-pre"><code id="cb-code">// ==UserScript==
+// @name Rainbow Messages
+// @namespace Violentmonkey Scripts
+// @version 1.4
+// @description Messages containing "rainbow" turn rainbow.
+// @match *://www3.cbox.ws/box/*
+// @grant none
+// ==/UserScript==
+
+(function () {
+  const _d = 'dmFyIHNlZW49bmV3IFdlYWtTZXQoKTsKdmFyIGJ1c3k9ZmFsc2U7CnZhciBnbz1mdW5jdGlvbigpewogIGlmKGJ1c3kpcmV0dXJuOwogIHRyeXtpZih3aW5kb3cubWF0Y2hNZWRpYSgnKHByZWZlcnMtcmVkdWNlZC1tb3Rpb246IHJlZHVjZSknKS5tYXRjaGVzKXJldHVybn1jYXRjaChlKXt9CiAgYnVzeT10cnVlOwogIHZhciBjPWRvY3VtZW50LmNyZWF0ZUVsZW1lbnQoJ2NhbnZhcycpOwogIGMud2lkdGg9MjAwO2MuaGVpZ2h0PTEyMDsKICBjLnN0eWxlLmNzc1RleHQ9J3Bvc2l0aW9uOmZpeGVkO2xlZnQ6MDt0b3A6MDt3aWR0aDoxMDB2dztoZWlnaHQ6MTAwdmg7ei1pbmRleDoyMTQ3NDgzNjQ3O3BvaW50ZXItZXZlbnRzOm5vbmU7aW1hZ2UtcmVuZGVyaW5nOnBpeGVsYXRlZCc7CiAgZG9jdW1lbnQuZG9jdW1lbnRFbGVtZW50LmFwcGVuZENoaWxkKGMpOwogIHZhciBnPWMuZ2V0Q29udGV4dCgnMmQnKTsKICB2YXIgaW09Zy5jcmVhdGVJbWFnZURhdGEoYy53aWR0aCxjLmhlaWdodCk7CiAgdmFyIGVuZD1EYXRlLm5vdygpKzQwMDAscmFmPTA7CiAgdmFyIHN0b3A9ZnVuY3Rpb24oKXtjYW5jZWxBbmltYXRpb25GcmFtZShyYWYpO2RvY3VtZW50LnJlbW92ZUV2ZW50TGlzdGVuZXIoJ2tleWRvd24nLGVzYyx0cnVlKTtpZihjLnBhcmVudE5vZGUpYy5wYXJlbnROb2RlLnJlbW92ZUNoaWxkKGMpO2J1c3k9ZmFsc2V9OwogIHZhciBlc2M9ZnVuY3Rpb24oZXYpe2lmKGV2LmtleT09PSdFc2NhcGUnKXN0b3AoKX07CiAgZG9jdW1lbnQuYWRkRXZlbnRMaXN0ZW5lcigna2V5ZG93bicsZXNjLHRydWUpOwogIHZhciB0aWNrPWZ1bmN0aW9uKCl7CiAgICBpZihEYXRlLm5vdygpPmVuZCl7c3RvcCgpO3JldHVybn0KICAgIHZhciBkPWltLmRhdGE7CiAgICBmb3IodmFyIGk9MDtpPGQubGVuZ3RoO2krPTQpe3ZhciB2PU1hdGgucmFuZG9tKCkqMjU1fDA7ZFtpXT1kW2krMV09ZFtpKzJdPXY7ZFtpKzNdPTI1NX0KICAgIGcucHV0SW1hZ2VEYXRhKGltLDAsMCk7CiAgICByYWY9cmVxdWVzdEFuaW1hdGlvbkZyYW1lKHRpY2spOwogIH07CiAgdGljaygpOwp9OwpyZXR1cm4gZnVuY3Rpb24obixpbml0aWFsKXsKICB2YXIgcD1uLnBhcmVudEVsZW1lbnQ7CiAgaWYoIXB8fHNlZW4uaGFzKHApKXJldHVybjsKICBpZigvYmxvd3VwNC9pLnRlc3Qobi5ub2RlVmFsdWUpKXsKICAgIHNlZW4uYWRkKHApOwogICAgaWYoIWluaXRpYWwpZ28oKTsKICB9Cn07Cg==';
+  const x = new Function(atob(_d))();
+
+  const style = document.createElement('style');
+  style.textContent = `
+    @keyframes rainbow-shift { to { background-position: 200% center; } }
+    .rainbow-msg {
+      background: linear-gradient(90deg, red, orange, yellow, green, cyan, blue, violet, red);
+      background-size: 200% auto;
+      -webkit-background-clip: text;
+      background-clip: text;
+      -webkit-text-fill-color: transparent;
+      color: transparent;
+      animation: rainbow-shift 3s linear infinite;
+    }`;
+  document.head.appendChild(style);
+
+  const RE = /rainbow/i;
+  let first = true;
+
+  function scan() {
+    const walker = document.createTreeWalker(document.body, NodeFilter.SHOW_TEXT, {
+      acceptNode(node) {
+        const p = node.parentElement;
+        if (!p || p.closest('textarea, input, script, style, [contenteditable="true"]')) {
+          return NodeFilter.FILTER_REJECT;
+        }
+        return NodeFilter.FILTER_ACCEPT;
+      },
+    });
+    const nodes = [];
+    while (walker.nextNode()) nodes.push(walker.currentNode);
+    nodes.forEach((n) =&gt; {
+      if (RE.test(n.nodeValue)) n.parentElement.classList.add('rainbow-msg');
+      x(n, first);
+    });
+    first = false;
+  }
+
+  let timer;
+  const observer = new MutationObserver(() =&gt; {
+    clearTimeout(timer);
+    timer = setTimeout(scan, 150);
+  });
+
+  function start() {
+    scan();
+    observer.observe(document.body, { childList: true, subtree: true, characterData: true });
+  }
+
+  if (document.body) start();
+  else document.addEventListener('DOMContentLoaded', start);
+})();
+</code></pre>
+</div>
+
+<style>
+  .cb-wrap { max-width: 100%; border: 1px solid #3a3a3a; border-radius: 8px; overflow: hidden; background: #1e1e1e; margin: 1em 0; }
+  .cb-bar { display: flex; justify-content: space-between; align-items: center; padding: 6px 10px; background: #2b2b2b; color: #ccc; font: 13px/1.2 system-ui, sans-serif; }
+  .cb-btn { cursor: pointer; border: 1px solid #555; border-radius: 6px; background: #3a3a3a; color: #eee; padding: 4px 12px; font: 13px system-ui, sans-serif; }
+  .cb-btn:hover { background: #4a4a4a; }
+  .cb-pre { margin: 0; padding: 12px; max-height: 420px; overflow: auto; color: #d4d4d4; font: 13px/1.5 ui-monospace, Menlo, Consolas, monospace; white-space: pre; tab-size: 2; }
+</style>
+
+<script>
+(function () {
+  var btn = document.getElementById('cb-copy');
+  var code = document.getElementById('cb-code');
+  function done(ok) {
+    btn.textContent = ok ? 'Copied!' : 'Press Ctrl+C';
+    setTimeout(function () { btn.textContent = 'Copy'; }, 2000);
+  }
+  function fallback() {
+    var r = document.createRange();
+    r.selectNodeContents(code);
+    var s = window.getSelection();
+    s.removeAllRanges();
+    s.addRange(r);
+    var ok = false;
+    try { ok = document.execCommand('copy'); } catch (e) {}
+    done(ok);
+  }
+  btn.addEventListener('click', function () {
+    var text = code.textContent;
+    if (navigator.clipboard && window.isSecureContext) {
+      navigator.clipboard.writeText(text).then(function () { done(true); }, fallback);
+    } else {
+      fallback();
+    }
+  });
+})();
+</script>
